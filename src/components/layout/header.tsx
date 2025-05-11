@@ -82,8 +82,8 @@ const casinoGameCategoriesData = [
     icon: Replace, 
     descriptionEn: "Play popular crash games.", descriptionBn: "জনপ্রিয় ক্র্যাশ গেম খেলুন।",
     games: [
-      { nameEn: "Rocket Crash", nameBn: "রকেট ক্র্যাশ", thumbnail: "httpsum.photos/100/120?random=106", dataAiHint: "rocket graph", href: "/games/4" },
-      { nameEn: "Aviator Pro", nameBn: "এভিয়েটর প্রো", thumbnail: "httpsum.photos/100/120?random=107", dataAiHint: "airplane sky", href: "/games/8" },
+      { nameEn: "Rocket Crash", nameBn: "রকেট ক্র্যাশ", thumbnail: "https://picsum.photos/100/120?random=106", dataAiHint: "rocket graph", href: "/games/4" },
+      { nameEn: "Aviator Pro", nameBn: "এভিয়েটর প্রো", thumbnail: "https://picsum.photos/100/120?random=107", dataAiHint: "airplane sky", href: "/games/8" },
     ]
   },
 ];
@@ -498,7 +498,7 @@ export function Header() {
             <NavigationMenuList>
               {mainNavLinks.slice(0,1).map((item) => ( 
                    <NavigationMenuItem key={item.key}>
-                      <Link href={item.href} legacyBehavior passHref>
+                      <Link href={item.href} >
                           <NavigationMenuLink className={cn(navigationMenuTriggerStyle(), "hover:bg-accent hover:text-accent-foreground")}>
                           {item.icon && <item.icon className="mr-1.5 h-4 w-4" />} {item.label}
                           </NavigationMenuLink>
@@ -596,7 +596,7 @@ export function Header() {
 
               {mainNavLinks.slice(1).map((item) => ( // Promotions, Leaderboard, VIP Club
                 <NavigationMenuItem key={item.key}>
-                   <Link href={item.href} legacyBehavior passHref>
+                   <Link href={item.href} >
                       <NavigationMenuLink className={cn(navigationMenuTriggerStyle(), "hover:bg-accent hover:text-accent-foreground")}>
                          {item.icon && <item.icon className="mr-1.5 h-4 w-4" />} {item.label}
                       </NavigationMenuLink>
@@ -789,4 +789,5 @@ export function Header() {
     </>
   );
 }
+
 
