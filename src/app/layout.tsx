@@ -8,7 +8,7 @@ import { Footer } from '@/components/layout/footer';
 import { Toaster } from '@/components/ui/toaster';
 import LoginBonusPopupWrapper from '@/components/shared/login-bonus-popup-wrapper'; 
 import './globals.css';
-import { GeistSans } from 'geist/font/sans';
+// Removed GeistSans import as per new font requirement
 
 
 export const metadata: Metadata = {
@@ -33,7 +33,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${GeistSans.variable} flex flex-col min-h-screen`} suppressHydrationWarning={true}>
+      <body className="flex flex-col min-h-screen" suppressHydrationWarning={true}> {/* Removed GeistSans.variable */}
         <ThemeProvider
           attribute="class"
           defaultTheme="light"
@@ -58,3 +58,4 @@ export default function RootLayout({
     </html>
   );
 }
+
