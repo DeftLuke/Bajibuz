@@ -1,0 +1,64 @@
+import Link from 'next/link';
+import { Logo } from './logo';
+
+const footerLinks = [
+  { href: '/support', label: 'Help Center' },
+  { href: '/terms', label: 'Terms of Service' },
+  { href: '/privacy', label: 'Privacy Policy' },
+  { href: '/responsible-gaming', label: 'Responsible Play' },
+  { href: '/contact', label: 'Contact Us' },
+];
+
+export function Footer() {
+  const currentYear = new Date().getFullYear();
+
+  return (
+    <footer className="border-t border-border/40 bg-background/95">
+      <div className="container mx-auto max-w-screen-2xl px-4 py-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
+          <div>
+            <Link href="/" className="inline-block mb-4" aria-label="DeshiSpin Home">
+              <Logo className="h-10 w-auto" />
+            </Link>
+            <p className="text-sm text-muted-foreground">
+              Play Local. Win Global. <br />
+              Your premier gaming destination in Bangladesh.
+            </p>
+          </div>
+          <div>
+            <h3 className="text-lg font-semibold mb-3 text-foreground">Quick Links</h3>
+            <ul className="space-y-2">
+              {footerLinks.slice(0,3).map((link) => (
+                <li key={link.label}>
+                  <Link href={link.href} className="text-sm text-muted-foreground hover:text-primary transition-colors">
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div>
+            <h3 className="text-lg font-semibold mb-3 text-foreground">Support</h3>
+            <ul className="space-y-2">
+              {footerLinks.slice(3).map((link) => (
+                <li key={link.label}>
+                  <Link href={link.href} className="text-sm text-muted-foreground hover:text-primary transition-colors">
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+        <div className="border-t border-border/40 pt-8 text-center">
+          <p className="text-sm text-muted-foreground">
+            &copy; {currentYear} DeshiSpin. All rights reserved.
+          </p>
+          <p className="text-xs text-muted-foreground mt-1">
+            Please play responsibly. Gambling can be addictive.
+          </p>
+        </div>
+      </div>
+    </footer>
+  );
+}
