@@ -8,7 +8,7 @@ import {
   Home, Menu, LogIn, UserPlus, Search,
   Gift, Dices, UsersRound, Trophy, Ticket, AlignJustify, HelpCircle, Settings2, Replace,
   Banknote, CreditCard, Award, UserCog, Bell, WalletCards, Tv, ChevronDown, Star, ShieldQuestion, UserCircle as UserCircleIcon, LogOut as LogOutIcon,
-  Gamepad2 as Gamepad2Icon, Camera, Edit3, KeyRound 
+  Gamepad2 as Gamepad2Icon, Camera, Edit3, KeyRound, Wallet
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Logo } from './logo';
@@ -128,8 +128,9 @@ const mainNavLinksData = [
 const topNavRightLinksData = [
     { key: 'deposit', href: '/wallet', labelEn: 'Deposit', labelBn: 'জমা', icon: Banknote, authRequired: true, mobileOnly: false, isWalletAction: true },
     { key: 'withdraw', href: '/wallet', labelEn: 'Withdraw', labelBn: 'উত্তোলন', icon: CreditCard, authRequired: true, mobileOnly: false, isWalletAction: true },
-    { key: 'kyc', href: '/dashboard?tab=profile', labelEn: 'KYC / Profile', labelBn: 'কেওয়াইসি / প্রোফাইল', icon: UserCog, authRequired: true, mobileOnly: false },
-    { key: 'help', href: '/support', labelEn: 'Help Center', labelBn: 'সহায়তা কেন্দ্র', icon: ShieldQuestion, authRequired: false, mobileOnly: false },
+    { key: 'my-wallet', href: '/wallet', labelEn: 'My Wallet', labelBn: 'আমার ওয়ালেট', icon: Wallet, authRequired: true, mobileOnly: false, isWalletAction: false },
+    { key: 'kyc', href: '/dashboard?tab=profile', labelEn: 'KYC / Profile', labelBn: 'কেওয়াইসি / প্রোফাইল', icon: UserCog, authRequired: true, mobileOnly: false, isWalletAction: false },
+    { key: 'help', href: '/support', labelEn: 'Help Center', labelBn: 'সহায়তা কেন্দ্র', icon: ShieldQuestion, authRequired: false, mobileOnly: false, isWalletAction: false },
 ];
 
 // userActionLinksData defines the items in the profile dropdown.
@@ -524,9 +525,7 @@ export function Header() {
 
               {topNavRightLinks.map((item) => {
                   if (item.authRequired && !currentUser) return null;
-                  // item.mobileOnly check removed as it's handled by "hidden md:inline-flex"
                   
-                  // For Deposit and Withdraw, use a more prominent variant
                   const buttonVariant = item.isWalletAction ? "outline" : "ghost";
                   
                   return (
@@ -616,4 +615,3 @@ export function Header() {
     </>
   );
 }
-
