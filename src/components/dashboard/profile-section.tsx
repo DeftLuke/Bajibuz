@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Edit3, ShieldAlert, ShieldCheck, UploadCloud } from "lucide-react";
+import { Edit3, ShieldAlert, ShieldCheck, UploadCloud, Phone } from "lucide-react";
 import { useLanguage } from "@/context/language-context";
 import { useAuth } from "@/context/auth-context";
 import { Badge } from "@/components/ui/badge";
@@ -56,7 +56,7 @@ export default function ProfileSection() {
         <div className="flex items-center space-x-4">
           <Avatar className="h-20 w-20">
             <AvatarImage src={currentUser.avatar || `https://picsum.photos/seed/${currentUser.uid}/100/100`} alt={currentUser.name} data-ai-hint="person avatar" />
-            <AvatarFallback>{currentUser.name.substring(0, 2).toUpperCase()}</AvatarFallback>
+            <AvatarFallback>{currentUser.name?.substring(0, 2).toUpperCase()}</AvatarFallback>
           </Avatar>
           <div>
             <Button variant="outline" size="sm">
@@ -77,18 +77,29 @@ export default function ProfileSection() {
             <Input id="fullName" defaultValue={currentUser.name} className="mt-1 bg-background" />
           </div>
           <div>
-            <Label htmlFor="username">
+            <Label htmlFor="usernameDisplay">
               {language === 'bn' ? 'ইউজারনেম (ইমেইল)' : 'Username (Email)'}
             </Label>
-            <Input id="username" defaultValue={currentUser.email} className="mt-1 bg-background" readOnly disabled />
+            <Input id="usernameDisplay" defaultValue={currentUser.email} className="mt-1 bg-background" readOnly disabled />
           </div>
           <div>
-            <Label htmlFor="email">
+            <Label htmlFor="emailDisplay">
               {language === 'bn' ? 'ইমেইল অ্যাড্রেস' : 'Email Address'}
             </Label>
-            <Input id="email" type="email" defaultValue={currentUser.email} className="mt-1 bg-background" readOnly disabled />
+            <Input id="emailDisplay" type="email" defaultValue={currentUser.email} className="mt-1 bg-background" readOnly disabled />
           </div>
-          {currentUser.signupMethod === 'email' && ( // Only show password fields if signed up with email
+          {currentUser.phoneNumber && (
+             <div>
+              <Label htmlFor="phoneDisplay">
+                {language === 'bn' ? 'ফোন নম্বর' : 'Phone Number'}
+              </Label>
+              <div className="flex items-center mt-1">
+                 <Phone className="mr-2 h-4 w-4 text-muted-foreground"/>
+                <Input id="phoneDisplay" type="tel" defaultValue={currentUser.phoneNumber} className="bg-background" readOnly disabled />
+              </div>
+            </div>
+          )}
+          {currentUser.signupMethod === 'email' && ( 
             <>
               <div>
                 <Label htmlFor="currentPassword">
@@ -139,7 +150,7 @@ export default function ProfileSection() {
               </div>
             )}
              {currentUser.kycStatus === 'verified' && (
-                <p className="text-sm text-green-600">
+                <p className="text-sm text-primary">
                     {language === 'bn' ? 'আপনার অ্যাকাউন্ট সম্পূর্ণভাবে যাচাই করা হয়েছে।' : 'Your account is fully verified.'}
                 </p>
             )}

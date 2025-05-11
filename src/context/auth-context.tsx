@@ -13,14 +13,15 @@ export interface UserProfile {
   name: string;
   email: string;
   avatar: string;
+  phoneNumber?: string; // Added phoneNumber
   signupMethod: 'email' | 'google' | 'phone';
-  createdAt: Date | Timestamp; // Can be Date on client, Timestamp from Firestore
+  createdAt: Date | Timestamp; 
   languagePreference: 'en' | 'bn';
   walletBalance: number;
   kycStatus: 'pending' | 'verified' | 'rejected' | 'not_submitted';
   referralCode?: string;
   loginIPs?: string[];
-  isNewUser?: boolean; // Flag to indicate first-time sign-up
+  isNewUser?: boolean; 
 }
 
 interface AuthContextType {
@@ -38,35 +39,38 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const unsubscribe = onAuthStateChangedListener(async (user: FirebaseUser | null) => {
       if (user) {
+        // Try to get existing profile first
         let userProfile = await getUserProfile(user.uid);
+        
         if (!userProfile) {
-          // This scenario handles if a user authenticates with Firebase
-          // but their Firestore document wasn't created (e.g. due to an error or race condition).
-          // Or, this is their very first sign-in via Google, and we need to create the doc.
-          await createUserDocumentFromAuth(user); // Create if doesn't exist from Google sign in
-          userProfile = await getUserProfile(user.uid); // Fetch again
-          if (userProfile) {
-             userProfile.isNewUser = true; // Mark as new user for potential welcome actions
-             // Store flag for DailySpinPopupWrapper
-             if (typeof window !== 'undefined') {
-                localStorage.setItem('showWelcomeSpin', 'true');
-             }
-          }
+          // If no profile, means it's a new user (or data was lost).
+          // createUserDocumentFromAuth will create it and set isNewUser: true internally.
+          userProfile = await createUserDocumentFromAuth(user, {
+            name: user.displayName || undefined, // Pass these if available from FirebaseUser
+            email: user.email || undefined,
+            phoneNumber: user.phoneNumber || undefined,
+            signupMethod: user.providerData.some(p => p.providerId === 'google.com') ? 'google' : 'email'
+          });
+        } else {
+          // User profile exists, not a new user in terms of document creation.
+          // Convert Firestore Timestamp to Date if necessary
+           const createdAtDate = userProfile.createdAt instanceof Date ? userProfile.createdAt : (userProfile.createdAt as any)?.toDate() || new Date();
+          userProfile = { ...userProfile, createdAt: createdAtDate, isNewUser: false };
         }
         setCurrentUser(userProfile);
+
       } else {
         setCurrentUser(null);
       }
       setLoading(false);
     });
 
-    return unsubscribe; // Cleanup subscription on unmount
+    return unsubscribe; 
   }, []);
 
   if (loading && typeof window !== 'undefined' && !currentUser) {
-    // Optional: Display a global loading indicator or skeleton for the initial auth check
-    // For simplicity, returning null or a minimal loader here.
-    // return <div>Loading authentication state...</div>; 
+    // Optional: A global loading indicator
+    // For now, returning children directly if loading is false or if it's server-side.
   }
 
   return (
