@@ -8,7 +8,7 @@ import {
   Home, Menu, LogIn, UserPlus, Search,
   Gift, Dices, UsersRound, Trophy, Ticket, AlignJustify, HelpCircle, Settings2, Replace,
   Banknote, CreditCard, Award, UserCog, Bell, WalletCards, Tv, ChevronDown, Star, ShieldQuestion, UserCircle as UserCircleIcon, LogOut as LogOutIcon,
-  Gamepad2 as Gamepad2Icon, History, Wallet as WalletIcon, Landmark, ArrowUpFromLine // Added WalletCards, ArrowUpFromLine
+  Gamepad2 as Gamepad2Icon, History, Wallet as WalletIcon, Landmark, ArrowUpFromLine, Phone // Added WalletCards, ArrowUpFromLine, Phone
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Logo } from './logo';
@@ -82,8 +82,8 @@ const casinoGameCategoriesData = [
     icon: Replace, 
     descriptionEn: "Play popular crash games.", descriptionBn: "জনপ্রিয় ক্র্যাশ গেম খেলুন।",
     games: [
-      { nameEn: "Rocket Crash", nameBn: "রকেট ক্র্যাশ", thumbnail: "https://picsum.photos/100/120?random=106", dataAiHint: "rocket graph", href: "/games/4" },
-      { nameEn: "Aviator Pro", nameBn: "এভিয়েটর প্রো", thumbnail: "https://picsum.photos/100/120?random=107", dataAiHint: "airplane sky", href: "/games/8" },
+      { nameEn: "Rocket Crash", nameBn: "রকেট ক্র্যাশ", thumbnail: "httpsum.photos/100/120?random=106", dataAiHint: "rocket graph", href: "/games/4" },
+      { nameEn: "Aviator Pro", nameBn: "এভিয়েটর প্রো", thumbnail: "httpsum.photos/100/120?random=107", dataAiHint: "airplane sky", href: "/games/8" },
     ]
   },
 ];
@@ -121,6 +121,7 @@ const liveGameOptionsData = [
 
 const mainNavLinksData = [
   { key: 'home', href: '/', labelEn: 'Home', labelBn: 'হোম', icon: Home },
+  // Wallet is now a separate dropdown
   { key: 'promotions', href: '/promotions', labelEn: 'Promotions', labelBn: 'প্রমোশন', icon: Gift },
   { key: 'leaderboard', href: '/leaderboard', labelEn: 'Leaderboard', labelBn: 'লিডারবোর্ড', icon: Trophy },
   { key: 'vip-club', href: '/vip-club', labelEn: 'VIP Club', labelBn: 'ভিআইপি ক্লাব', icon: Award },
@@ -140,6 +141,43 @@ const userActionLinksData = [
       labelEn: 'Profile Settings', 
       labelBn: 'প্রোফাইল সেটিংস', 
       icon: Settings2,
+    },
+];
+
+const BkashIconPlaceholder = () => <span className="font-bold text-pink-500 mr-1 text-lg">b</span>;
+const NagadIconPlaceholder = () => <span className="font-bold text-orange-500 mr-1 text-lg">N</span>;
+const RocketIconPlaceholder = () => <span className="font-bold text-purple-600 mr-1 text-lg">R</span>;
+
+const walletMenuItems = [
+    { 
+        key: "bkash-deposit", titleEn: "Deposit with bKash", titleBn: "বিকাশে টাকা জমা দিন", 
+        href:"/wallet?action=deposit&method=bkash", 
+        icon: BkashIconPlaceholder, 
+        descriptionEn: "Fast & secure mobile payment.", descriptionBn: "দ্রুত এবং নিরাপদ মোবাইল পেমেন্ট।"
+    },
+    { 
+        key: "nagad-deposit", titleEn: "Deposit with Nagad", titleBn: "নগদে টাকা জমা দিন", 
+        href:"/wallet?action=deposit&method=nagad", 
+        icon: NagadIconPlaceholder, 
+        descriptionEn: "Convenient mobile financial service.", descriptionBn: "সুবিধাজনক মোবাইল আর্থিক পরিষেবা।"
+    },
+    { 
+        key: "rocket-deposit", titleEn: "Deposit with Rocket", titleBn: "রকেটে টাকা জমা দিন", 
+        href:"/wallet?action=deposit&method=rocket", 
+        icon: RocketIconPlaceholder, 
+        descriptionEn: "Reliable mobile banking.", descriptionBn: "নির্ভরযোগ্য মোবাইল ব্যাংকিং।"
+    },
+    { 
+        key: "bank-deposit", titleEn: "Bank Transfer Deposit", titleBn: "ব্যাংক ট্রান্সফার", 
+        href:"/wallet?action=deposit&method=bank", 
+        icon: Landmark, 
+        descriptionEn: "Deposit via local bank transfer.", descriptionBn: "স্থানীয় ব্যাংক ট্রান্সফারের মাধ্যমে জমা দিন।"
+    },
+    { 
+        key: "withdraw-funds", titleEn: "Withdraw Funds", titleBn: "টাকা উত্তোলন করুন", 
+        href:"/wallet?action=withdraw", 
+        icon: ArrowUpFromLine, 
+        descriptionEn: "Access your winnings.", descriptionBn: "আপনার জেতা টাকা উত্তোলন করুন।"
     },
 ];
 
@@ -216,11 +254,8 @@ export function Header() {
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const profileMenuTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  const [isWalletMenuOpen, setIsWalletMenuOpen] = useState(false);
-  const walletMenuTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-
-  const [isDedicatedWalletMenuOpen, setIsDedicatedWalletMenuOpen] = useState(false);
-  const dedicatedWalletMenuTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const [isWalletBalanceMenuOpen, setIsWalletBalanceMenuOpen] = useState(false);
+  const walletBalanceMenuTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
 
   useEffect(() => {
@@ -252,14 +287,14 @@ export function Header() {
   const userActionLinks = userActionLinksData.map(link => ({...link, label: language === 'bn' ? link.labelBn : link.labelEn}));
   const casinoGameCategories = casinoGameCategoriesData.map(cat => ({...cat, title: language === 'bn' ? cat.titleBn : cat.titleEn, description: language === 'bn' ? cat.descriptionBn : cat.descriptionEn, games: cat.games?.map(g => ({...g, name: language === 'bn' ? g.nameBn : g.nameEn})) }));
   const liveGameOptions = liveGameOptionsData.map(cat => ({...cat, title: language === 'bn' ? cat.titleBn : cat.titleEn, description: language === 'bn' ? cat.descriptionBn : cat.descriptionEn, games: cat.games?.map(g => ({...g, name: language === 'bn' ? g.nameBn : g.nameEn})) }));
+  const currentWalletMenuItems = walletMenuItems.map(item => ({ ...item, title: language === 'bn' ? item.titleBn : item.titleEn, description: language === 'bn' ? item.descriptionBn : item.descriptionEn }));
 
 
   const handleSignOut = async () => {
     await signOutUser();
     setIsMobileMenuOpen(false); 
     setIsProfileMenuOpen(false); 
-    setIsWalletMenuOpen(false);
-    setIsDedicatedWalletMenuOpen(false);
+    setIsWalletBalanceMenuOpen(false);
   };
   
   const handleCloseSpinPopup = () => {
@@ -283,32 +318,18 @@ export function Header() {
     profileMenuTimeoutRef.current = setTimeout(() => setIsProfileMenuOpen(false), 150);
   };
 
-  const handleWalletMenuOpen = () => {
-    if (walletMenuTimeoutRef.current) clearTimeout(walletMenuTimeoutRef.current);
-    setIsWalletMenuOpen(true);
+  const handleWalletBalanceMenuOpen = () => {
+    if (walletBalanceMenuTimeoutRef.current) clearTimeout(walletBalanceMenuTimeoutRef.current);
+    setIsWalletBalanceMenuOpen(true);
   };
-  const handleWalletMenuClose = () => {
-    walletMenuTimeoutRef.current = setTimeout(() => setIsWalletMenuOpen(false), 150);
+  const handleWalletBalanceMenuClose = () => {
+    walletBalanceMenuTimeoutRef.current = setTimeout(() => setIsWalletBalanceMenuOpen(false), 150);
   };
-  const handleWalletMenuContentEnter = () => {
-    if (walletMenuTimeoutRef.current) clearTimeout(walletMenuTimeoutRef.current);
+  const handleWalletBalanceMenuContentEnter = () => {
+    if (walletBalanceMenuTimeoutRef.current) clearTimeout(walletBalanceMenuTimeoutRef.current);
   };
-  const handleWalletMenuContentLeave = () => {
-    walletMenuTimeoutRef.current = setTimeout(() => setIsWalletMenuOpen(false), 150);
-  };
-
-  const handleDedicatedWalletMenuOpen = () => {
-    if (dedicatedWalletMenuTimeoutRef.current) clearTimeout(dedicatedWalletMenuTimeoutRef.current);
-    setIsDedicatedWalletMenuOpen(true);
-  };
-  const handleDedicatedWalletMenuClose = () => {
-    dedicatedWalletMenuTimeoutRef.current = setTimeout(() => setIsDedicatedWalletMenuOpen(false), 150);
-  };
-  const handleDedicatedWalletMenuContentEnter = () => {
-    if (dedicatedWalletMenuTimeoutRef.current) clearTimeout(dedicatedWalletMenuTimeoutRef.current);
-  };
-  const handleDedicatedWalletMenuContentLeave = () => {
-    dedicatedWalletMenuTimeoutRef.current = setTimeout(() => setIsDedicatedWalletMenuOpen(false), 150);
+  const handleWalletBalanceMenuContentLeave = () => {
+    walletBalanceMenuTimeoutRef.current = setTimeout(() => setIsWalletBalanceMenuOpen(false), 150);
   };
 
 
@@ -394,6 +415,26 @@ export function Header() {
                           </SheetClose>
                         ))}
                       </AccordionContent>
+                    </AccordionItem>
+                     <AccordionItem value="wallet-actions" className="border-b-0">
+                        <AccordionTrigger className="flex items-center space-x-3 rounded-md py-2.5 px-2 text-sm hover:bg-accent hover:text-accent-foreground hover:no-underline">
+                            <WalletCards className="h-5 w-5 text-primary" />
+                            <span>{language === 'bn' ? 'ওয়ালেট' : 'Wallet'}</span>
+                        </AccordionTrigger>
+                        <AccordionContent className="pl-4">
+                            <SheetClose asChild>
+                                <Link href="/wallet?action=deposit" className="flex items-center space-x-2 py-2 px-2 text-sm rounded-md hover:bg-accent/50" onClick={() => setIsMobileMenuOpen(false)}>
+                                    <Banknote className="h-4 w-4 text-muted-foreground" />
+                                    <span>{language === 'bn' ? 'টাকা জমা দিন' : 'Deposit Funds'}</span>
+                                </Link>
+                            </SheetClose>
+                            <SheetClose asChild>
+                                <Link href="/wallet?action=withdraw" className="flex items-center space-x-2 py-2 px-2 text-sm rounded-md hover:bg-accent/50" onClick={() => setIsMobileMenuOpen(false)}>
+                                    <ArrowUpFromLine className="h-4 w-4 text-muted-foreground" />
+                                    <span>{language === 'bn' ? 'টাকা উত্তোলন' : 'Withdraw Funds'}</span>
+                                </Link>
+                            </SheetClose>
+                        </AccordionContent>
                     </AccordionItem>
                   </Accordion>
 
@@ -513,8 +554,47 @@ export function Header() {
                   </div>
                 </NavigationMenuContent>
               </NavigationMenuItem>
+              
+              {/* Wallet Dropdown Menu Item */}
+                <NavigationMenuItem>
+                    <NavigationMenuTrigger className="hover:bg-accent hover:text-accent-foreground">
+                        <WalletCards className="mr-1.5 h-4 w-4" /> {language === 'bn' ? 'ওয়ালেট' : 'Wallet'}
+                    </NavigationMenuTrigger>
+                    <NavigationMenuContent>
+                        <ul className="grid gap-3 p-4 md:w-[400px] lg:w-[500px] lg:grid-cols-[.75fr_1fr] bg-card border-border shadow-lg">
+                            <li className="row-span-5">
+                                <NavigationMenuLink asChild>
+                                <Link
+                                    className="flex h-full w-full select-none flex-col justify-end rounded-md bg-gradient-to-b from-muted/50 to-muted p-6 no-underline outline-none focus:shadow-md hover:bg-accent hover:text-accent-foreground"
+                                    href="/wallet"
+                                >
+                                    <WalletIcon className="h-6 w-6 text-primary" />
+                                    <div className="mb-2 mt-4 text-lg font-medium text-foreground">
+                                    {language === 'bn' ? 'আমার ওয়ালেট' : 'My Wallet'}
+                                    </div>
+                                    <p className="text-sm leading-tight text-muted-foreground">
+                                    {language === 'bn' ? 'আপনার জমা, উত্তোলন এবং লেনদেনের ইতিহাস পরিচালনা করুন।' : 'Manage your deposits, withdrawals, and transaction history.'}
+                                    </p>
+                                </Link>
+                                </NavigationMenuLink>
+                            </li>
+                            {currentWalletMenuItems.map((item) => (
+                                <ListItem
+                                key={item.key}
+                                title={item.title}
+                                href={item.href}
+                                icon={item.icon}
+                                className="hover:bg-accent hover:text-accent-foreground"
+                                >
+                                {item.description}
+                                </ListItem>
+                            ))}
+                        </ul>
+                    </NavigationMenuContent>
+                </NavigationMenuItem>
 
-              {mainNavLinks.slice(1).map((item) => (
+
+              {mainNavLinks.slice(1).map((item) => ( // Promotions, Leaderboard, VIP Club
                 <NavigationMenuItem key={item.key}>
                    <Link href={item.href} legacyBehavior passHref>
                       <NavigationMenuLink className={cn(navigationMenuTriggerStyle(), "hover:bg-accent hover:text-accent-foreground")}>
@@ -539,14 +619,14 @@ export function Header() {
               )}
               
               {!loading && currentUser && (
-                <DropdownMenu open={isWalletMenuOpen} onOpenChange={setIsWalletMenuOpen}>
+                <DropdownMenu open={isWalletBalanceMenuOpen} onOpenChange={setIsWalletBalanceMenuOpen}>
                   <DropdownMenuTrigger asChild>
                     <Button 
                       variant="ghost" 
                       className="hidden md:flex items-center text-xs px-2.5 py-1.5 h-auto rounded-md hover:bg-accent hover:text-accent-foreground"
-                      onMouseEnter={handleWalletMenuOpen}
-                      onMouseLeave={handleWalletMenuClose}
-                      onClick={() => setIsWalletMenuOpen(prev => !prev)}
+                      onMouseEnter={handleWalletBalanceMenuOpen}
+                      onMouseLeave={handleWalletBalanceMenuClose}
+                      onClick={() => setIsWalletBalanceMenuOpen(prev => !prev)}
                     >
                       <WalletIcon className="mr-1.5 h-4 w-4 text-primary" />
                       <span className="font-medium">৳{walletBalanceString}</span>
@@ -557,8 +637,8 @@ export function Header() {
                     className="w-64 bg-card border-border shadow-lg" 
                     align="end" 
                     forceMount
-                    onMouseEnter={handleWalletMenuContentEnter}
-                    onMouseLeave={handleWalletMenuContentLeave}
+                    onMouseEnter={handleWalletBalanceMenuContentEnter}
+                    onMouseLeave={handleWalletBalanceMenuContentLeave}
                   >
                     <DropdownMenuLabel className="font-normal text-foreground">
                       <div className="flex flex-col space-y-1">
@@ -567,7 +647,7 @@ export function Header() {
                       </div>
                     </DropdownMenuLabel>
                     <DropdownMenuSeparator />
-                     <DropdownMenuItem asChild onClick={() => setIsWalletMenuOpen(false)} className="cursor-pointer hover:bg-accent focus:bg-accent">
+                     <DropdownMenuItem asChild onClick={() => setIsWalletBalanceMenuOpen(false)} className="cursor-pointer hover:bg-accent focus:bg-accent">
                       <Link href="/wallet?action=deposit" className="w-full">
                         <Banknote className="mr-2 h-4 w-4" />
                         <span>{language === 'bn' ? 'টাকা জমা দিন' : 'Deposit Funds'}</span>
@@ -578,22 +658,22 @@ export function Header() {
                       <DropdownMenuLabel className="px-2 py-1.5 text-xs font-normal text-muted-foreground">
                         {language === 'bn' ? 'ডিপোজিট মাধ্যম:' : 'Deposit Methods:'}
                       </DropdownMenuLabel>
-                      <DropdownMenuItem asChild onClick={() => setIsWalletMenuOpen(false)} className="cursor-pointer hover:bg-accent focus:bg-accent">
+                      <DropdownMenuItem asChild onClick={() => setIsWalletBalanceMenuOpen(false)} className="cursor-pointer hover:bg-accent focus:bg-accent">
                         <Link href="/wallet?method=bkash&action=deposit" className="w-full">
-                          <span className="ml-2 font-medium text-pink-600">bKash</span>
+                          <BkashIconPlaceholder /><span className="ml-1">bKash</span>
                         </Link>
                       </DropdownMenuItem>
-                      <DropdownMenuItem asChild onClick={() => setIsWalletMenuOpen(false)} className="cursor-pointer hover:bg-accent focus:bg-accent">
+                      <DropdownMenuItem asChild onClick={() => setIsWalletBalanceMenuOpen(false)} className="cursor-pointer hover:bg-accent focus:bg-accent">
                         <Link href="/wallet?method=nagad&action=deposit" className="w-full">
-                          <span className="ml-2 font-medium text-orange-500">Nagad</span>
+                         <NagadIconPlaceholder /><span className="ml-1">Nagad</span>
                         </Link>
                       </DropdownMenuItem>
-                      <DropdownMenuItem asChild onClick={() => setIsWalletMenuOpen(false)} className="cursor-pointer hover:bg-accent focus:bg-accent">
+                      <DropdownMenuItem asChild onClick={() => setIsWalletBalanceMenuOpen(false)} className="cursor-pointer hover:bg-accent focus:bg-accent">
                         <Link href="/wallet?method=rocket&action=deposit" className="w-full">
-                           <span className="ml-2 font-medium text-purple-600">Rocket</span>
+                           <RocketIconPlaceholder /><span className="ml-1">Rocket</span>
                         </Link>
                       </DropdownMenuItem>
-                      <DropdownMenuItem asChild onClick={() => setIsWalletMenuOpen(false)} className="cursor-pointer hover:bg-accent focus:bg-accent">
+                      <DropdownMenuItem asChild onClick={() => setIsWalletBalanceMenuOpen(false)} className="cursor-pointer hover:bg-accent focus:bg-accent">
                         <Link href="/wallet?method=bank&action=deposit" className="w-full">
                           <Landmark className="mr-2 h-4 w-4" />
                           <span>{language === 'bn' ? 'ব্যাংক ট্রান্সফার' : 'Bank Transfer'}</span>
@@ -602,14 +682,14 @@ export function Header() {
                     </DropdownMenuGroup>
                     
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem asChild onClick={() => setIsWalletMenuOpen(false)} className="cursor-pointer hover:bg-accent focus:bg-accent">
+                    <DropdownMenuItem asChild onClick={() => setIsWalletBalanceMenuOpen(false)} className="cursor-pointer hover:bg-accent focus:bg-accent">
                        <Link href="/wallet?action=withdraw" className="w-full">
                         <CreditCard className="mr-2 h-4 w-4" />
                         <span>{language === 'bn' ? 'টাকা উত্তোলন করুন' : 'Withdraw Funds'}</span>
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem asChild onClick={() => setIsWalletMenuOpen(false)} className="cursor-pointer hover:bg-accent focus:bg-accent">
+                    <DropdownMenuItem asChild onClick={() => setIsWalletBalanceMenuOpen(false)} className="cursor-pointer hover:bg-accent focus:bg-accent">
                       <Link href="/dashboard?tab=history" className="w-full">
                         <History className="mr-2 h-4 w-4" />
                         <span>{language === 'bn' ? 'লেনদেনের ইতিহাস' : 'Transaction History'}</span>
@@ -630,69 +710,7 @@ export function Header() {
                   );
               })}
             
-            {/* New Dedicated Wallet Dropdown */}
-            {currentUser && (
-              <DropdownMenu open={isDedicatedWalletMenuOpen} onOpenChange={setIsDedicatedWalletMenuOpen}>
-                <DropdownMenuTrigger asChild>
-                  <Button 
-                    variant="ghost" 
-                    size="icon" 
-                    className="relative hover:bg-accent hover:text-accent-foreground" 
-                    aria-label={language === 'bn' ? 'ওয়ালেট' : 'Wallet'}
-                    onMouseEnter={handleDedicatedWalletMenuOpen}
-                    onMouseLeave={handleDedicatedWalletMenuClose}
-                    onClick={() => setIsDedicatedWalletMenuOpen(prev => !prev)}
-                  >
-                    <WalletCards className="h-5 w-5" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent 
-                  align="end" 
-                  className="w-60 bg-card border-border shadow-lg"
-                  onMouseEnter={handleDedicatedWalletMenuContentEnter}
-                  onMouseLeave={handleDedicatedWalletMenuContentLeave}
-                >
-                  <DropdownMenuLabel className="font-semibold text-foreground">{language === 'bn' ? 'ওয়ালেট অপশন' : 'Wallet Options'}</DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuGroup>
-                    <DropdownMenuLabel className="px-2 py-1.5 text-xs text-muted-foreground">
-                      {language === 'bn' ? 'ডিপোজিট করুন' : 'Deposit'}
-                    </DropdownMenuLabel>
-                    <DropdownMenuItem asChild className="cursor-pointer hover:bg-accent focus:bg-accent" onClick={() => setIsDedicatedWalletMenuOpen(false)}>
-                      <Link href="/wallet?action=deposit&method=bkash">
-                        <span className="ml-2 font-medium text-pink-600">bKash</span>
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild className="cursor-pointer hover:bg-accent focus:bg-accent" onClick={() => setIsDedicatedWalletMenuOpen(false)}>
-                      <Link href="/wallet?action=deposit&method=nagad">
-                        <span className="ml-2 font-medium text-orange-500">Nagad</span>
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild className="cursor-pointer hover:bg-accent focus:bg-accent" onClick={() => setIsDedicatedWalletMenuOpen(false)}>
-                      <Link href="/wallet?action=deposit&method=rocket">
-                        <span className="ml-2 font-medium text-purple-600">Rocket</span>
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild className="cursor-pointer hover:bg-accent focus:bg-accent" onClick={() => setIsDedicatedWalletMenuOpen(false)}>
-                      <Link href="/wallet?action=deposit&method=bank">
-                        <Landmark className="mr-2 h-4 w-4" />
-                        <span>{language === 'bn' ? 'ব্যাংক ট্রান্সফার' : 'Bank Transfer'}</span>
-                      </Link>
-                    </DropdownMenuItem>
-                  </DropdownMenuGroup>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem asChild className="cursor-pointer hover:bg-accent focus:bg-accent" onClick={() => setIsDedicatedWalletMenuOpen(false)}>
-                    <Link href="/wallet?action=withdraw">
-                      <ArrowUpFromLine className="mr-2 h-4 w-4" />
-                      <span>{language === 'bn' ? 'টাকা উত্তোলন' : 'Withdraw Funds'}</span>
-                    </Link>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            )}
-
-
-            <Button variant="ghost" size="icon" className="relative hover:bg-accent hover:text-accent-foreground" aria-label="Notifications">
+            <Button variant="ghost" size="icon" className="relative hover:bg-accent hover:text-accent-foreground" aria-label={language === 'bn' ? 'নোটিফিকেশন' : 'Notifications'}>
               <Bell className="h-5 w-5" />
               {notificationCount > 0 && (
                 <span className="absolute top-1.5 right-1.5 flex h-2 w-2">
@@ -716,7 +734,7 @@ export function Header() {
                     onClick={() => setIsProfileMenuOpen(prev => !prev)} 
                   >
                     <Avatar className="h-8 w-8">
-                      <AvatarImage src={currentUser.avatar || `https://picsum.photos/seed/${currentUser.uid}/32/32`} alt={currentUser.name || 'User'} />
+                      <AvatarImage src={currentUser.avatar || `https://picsum.photos/seed/${currentUser.uid}/32/32`} alt={currentUser.name || 'User'} data-ai-hint="person avatar"/>
                       <AvatarFallback>{currentUser.name?.substring(0,1).toUpperCase() || 'U'}</AvatarFallback>
                     </Avatar>
                   </Button>
