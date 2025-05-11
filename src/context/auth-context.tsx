@@ -1,4 +1,3 @@
-
 'use client';
 
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
@@ -19,7 +18,7 @@ export interface UserProfile {
   kycStatus: 'pending' | 'verified' | 'rejected' | 'not_submitted';
   referralCode?: string;
   loginIPs?: string[];
-  isNewUser?: boolean;
+  isNewUser?: boolean; // Indicates if the user profile was just created in Firestore
 }
 
 interface AuthContextType {
@@ -38,32 +37,42 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const updateCurrentUserProfile = async (updates: Partial<UserProfile>) => {
     if (currentUser) {
       try {
+        // Ensure walletBalance is not negative if it's being updated
+        if (updates.walletBalance !== undefined && updates.walletBalance < 0) {
+          updates.walletBalance = 0;
+        }
         await updateUserDocument(currentUser.uid, updates);
         setCurrentUser(prevUser => prevUser ? { ...prevUser, ...updates } : null);
       } catch (error) {
-        console.error("Error updating user profile in context:", error);
-        // Optionally re-throw or handle with a toast
+        console.error("AuthContext: Error updating user profile in context:", error);
       }
     }
   };
 
 
   useEffect(() => {
-    setLoading(true); // Set loading to true when listener starts or changes
+    console.log('AuthContext: Subscribing to auth state changes.');
+    // setLoading(true); // Already true by default, no need to set again here
     const unsubscribe = onAuthStateChangedListener(async (user: FirebaseUser | null) => {
+      console.log('AuthContext: onAuthStateChangedListener fired. Firebase User:', user ? user.uid : 'null');
       if (user) {
         try {
+          console.log('AuthContext: Firebase user detected. Fetching/creating Firestore profile...');
           let userProfileDoc = await getUserProfile(user.uid);
+          console.log('AuthContext: getUserProfile result:', userProfileDoc ? `UID: ${userProfileDoc.uid}, Name: ${userProfileDoc.name}` : 'null');
 
           if (!userProfileDoc) {
-            // Pass isNewUser true so createUserDocumentFromAuth sets localStorage flag
+            console.log('AuthContext: No Firestore profile found, creating new one...');
+            // This path means a user is authenticated with Firebase, but no corresponding Firestore document exists.
+            // This is typical for a first-time signup where the Firebase user is created, then this listener fires.
             userProfileDoc = await createUserDocumentFromAuth(user, {
               name: user.displayName || undefined,
               email: user.email || undefined,
               signupMethod: user.providerData.some(p => p.providerId === 'google.com') ? 'google' : 'email',
               avatar: user.photoURL || `https://picsum.photos/seed/${user.uid}/100/100`,
-              isNewUser: true, 
+              // createUserDocumentFromAuth will set isNewUser: true and handle bonus popup flag
             });
+            console.log('AuthContext: createUserDocumentFromAuth result:', userProfileDoc ? `UID: ${userProfileDoc.uid}, Name: ${userProfileDoc.name}, IsNew: ${userProfileDoc.isNewUser}` : 'null');
           }
           
           if (userProfileDoc) {
@@ -72,35 +81,42 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 ? userProfileDoc.createdAt
                 : (userProfileDoc.createdAt as unknown as Timestamp)?.toDate?.() || new Date();
             
-            setCurrentUser({
+            const finalProfile = {
               ...userProfileDoc,
               createdAt: createdAtDate,
-            });
+            };
+            console.log(`AuthContext: Setting currentUser in context: UID: ${finalProfile.uid}, Name: ${finalProfile.name}, IsNew: ${finalProfile.isNewUser}`);
+            setCurrentUser(finalProfile);
           } else {
+            // This case should ideally not happen if createUserDocumentFromAuth is robust.
+            // If it does, it means profile creation/fetching failed.
+            console.warn('AuthContext: userProfileDoc is null after fetch/create attempt. Setting currentUser to null.');
             setCurrentUser(null); 
-            console.error("Failed to get or create user profile for UID:", user.uid);
           }
         } catch (error) {
-          console.error("Error processing auth state change:", error);
+          console.error("AuthContext: Error processing auth state change (user present path):", error);
           setCurrentUser(null);
         } finally {
-          setLoading(false); // Auth check complete
+          console.log('AuthContext: Setting loading to false (user path completed).');
+          setLoading(false);
         }
       } else {
+        console.log('AuthContext: No Firebase user, setting currentUser to null.');
         setCurrentUser(null);
-        setLoading(false); // Auth check complete (no user)
+        console.log('AuthContext: Setting loading to false (no user path).');
+        setLoading(false);
       }
     });
 
     return () => {
+        console.log('AuthContext: Unsubscribing from auth state changes.');
         unsubscribe();
-        setLoading(false); // Ensure loading is false on unmount if needed
     }
-  }, []);
+  }, []); // Empty dependency array ensures this runs once on mount and cleans up on unmount
 
   const value: AuthContextType = {
     currentUser,
-    setCurrentUser,
+    setCurrentUser, // This setter is rarely used directly by components, AuthProvider manages it.
     updateCurrentUserProfile,
     loading,
   };

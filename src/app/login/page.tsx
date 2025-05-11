@@ -1,4 +1,3 @@
-
 "use client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -20,35 +19,40 @@ export default function LoginPage() {
   const { toast } = useToast();
   const { currentUser, loading: authLoading } = useAuth();
 
-  const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false); // Renamed from isLoading to avoid conflict with authLoading
   const [error, setError] = useState<string | null>(null);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
   useEffect(() => {
+    // This effect handles redirection IF the user is already authenticated when they visit this page,
+    // OR if the currentUser state changes (e.g., after a successful login action on this page).
     if (!authLoading && currentUser) {
-      // If user is already logged in (e.g. session persisted)
-      // and AuthContext has confirmed it, redirect to dashboard.
+      console.log('LoginPage: User authenticated, redirecting to dashboard.');
       router.push('/dashboard');
+    } else if (!authLoading && !currentUser) {
+      console.log('LoginPage: User not authenticated, showing login form.');
+    } else {
+      console.log('LoginPage: Auth state still loading...');
     }
   }, [currentUser, authLoading, router]);
 
   const handleGoogleLogin = async () => {
-    setIsLoading(true);
+    setIsSubmitting(true);
     setError(null);
     try {
       const userAuth = await signInWithGoogle();
       if (userAuth) {
-        // Set flag for login bonus popup
+        // Set flag for login bonus popup. AuthContext will handle profile creation/fetching.
+        // Redirection will be handled by the useEffect above when currentUser updates.
         if (typeof window !== 'undefined') {
             localStorage.setItem('showLoginBonusPopup', 'true');
         }
-        // AuthContext will update currentUser, then useEffect will redirect
         toast({
           title: language === 'bn' ? 'সফলভাবে লগইন হয়েছে!' : "Successfully Logged In!",
           description: language === 'bn' ? `স্বাগতম, ${userAuth.displayName || 'ব্যবহারকারী'}!` : `Welcome back, ${userAuth.displayName || 'User'}!`,
         });
-        // router.push('/dashboard'); // Removed: Redirection handled by useEffect
+        // The useEffect will redirect once AuthContext updates currentUser
       }
     } catch (err: any) {
         const message = err.message || (language === 'bn' ? 'গুগল লগইনে একটি সমস্যা হয়েছে। অনুগ্রহ করে আবার চেষ্টা করুন।' : "There was an issue with Google Login. Please try again.");
@@ -59,36 +63,36 @@ export default function LoginPage() {
             variant: "destructive",
         });
     } finally {
-        setIsLoading(false);
+        setIsSubmitting(false);
     }
   };
 
   const handleEmailLogin = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    setIsLoading(true);
+    setIsSubmitting(true);
     setError(null);
 
     if (!email.trim() || !password.trim()) {
         const message = language === 'bn' ? 'অনুগ্রহ করে ইমেইল এবং পাসওয়ার্ড লিখুন।' : 'Please enter both email and password.';
         setError(message);
         toast({ title: language === 'bn' ? 'ফর্ম ত্রুটি' : 'Form Error', description: message, variant: 'destructive'});
-        setIsLoading(false);
+        setIsSubmitting(false);
         return;
     }
 
     try {
       const userAuth = await signInWithEmail(email, password);
       if (userAuth) {
-        // Set flag for login bonus popup
+        // Set flag for login bonus popup. AuthContext will handle profile creation/fetching.
+        // Redirection will be handled by the useEffect above when currentUser updates.
         if (typeof window !== 'undefined') {
             localStorage.setItem('showLoginBonusPopup', 'true');
         }
-        // AuthContext will update currentUser, then useEffect will redirect
         toast({
           title: language === 'bn' ? 'সফলভাবে লগইন হয়েছে!' : "Successfully Logged In!",
           description: language === 'bn' ? 'স্বাগতম!' : 'Welcome back!',
         });
-        // router.push('/dashboard'); // Removed: Redirection handled by useEffect
+        // The useEffect will redirect once AuthContext updates currentUser
       }
     } catch (err: any) {
       console.error("Login Error:", err);
@@ -117,24 +121,25 @@ export default function LoginPage() {
         variant: "destructive",
       });
     } finally {
-      setIsLoading(false);
+      setIsSubmitting(false);
     }
   };
 
   if (authLoading) {
     return (
-      <div className="flex justify-center items-center h-screen">
+      <div className="flex justify-center items-center min-h-screen"> {/* Ensure min-h-screen for full page loading */}
         <p className="text-xl text-muted-foreground">
           {language === 'bn' ? 'লোড হচ্ছে...' : 'Loading...'}
         </p>
       </div>
     );
   }
-  // If user is already logged in and not loading, they would have been redirected by useEffect.
-  // So, if we reach here, it means currentUser is null and authLoading is false.
-
+  
+  // If !authLoading && currentUser, useEffect will redirect.
+  // This return is for the case where !authLoading && !currentUser (i.e., show login form)
+  // OR for the brief moment before useEffect redirects if currentUser becomes true.
   return (
-    <div className="flex items-center justify-center py-12">
+    <div className="flex items-center justify-center py-12 min-h-screen"> {/* Ensure min-h-screen */}
       <Card className="w-full max-w-md shadow-2xl">
         <CardHeader className="text-center">
           <div className="inline-block mx-auto p-3 bg-primary/10 rounded-full mb-4">
@@ -169,6 +174,7 @@ export default function LoginPage() {
                 value={email} 
                 onChange={(e) => setEmail(e.target.value)} 
                 required 
+                disabled={isSubmitting}
               />
             </div>
             <div className="space-y-1">
@@ -189,13 +195,14 @@ export default function LoginPage() {
                 value={password} 
                 onChange={(e) => setPassword(e.target.value)} 
                 required 
+                disabled={isSubmitting}
               />
             </div>
           </CardContent>
           <CardFooter className="flex flex-col gap-4">
-            <Button type="submit" className="w-full" size="lg" disabled={isLoading || authLoading}>
+            <Button type="submit" className="w-full" size="lg" disabled={isSubmitting || authLoading}>
               <LogIn className="mr-2 h-5 w-5" /> 
-              {isLoading ? (language === 'bn' ? 'প্রসেস হচ্ছে...' : 'Processing...') : (language === 'bn' ? 'লগইন' : 'Login')}
+              {isSubmitting ? (language === 'bn' ? 'প্রসেস হচ্ছে...' : 'Processing...') : (language === 'bn' ? 'লগইন' : 'Login')}
             </Button>
           </CardFooter>
         </form>
@@ -210,9 +217,9 @@ export default function LoginPage() {
           </div>
         </div>
         <CardFooter className="flex flex-col gap-4 pt-0">
-          <Button variant="outline" size="lg" className="w-full text-muted-foreground" onClick={handleGoogleLogin} disabled={isLoading || authLoading}>
+          <Button variant="outline" size="lg" className="w-full text-muted-foreground" onClick={handleGoogleLogin} disabled={isSubmitting || authLoading}>
               <Mail className="mr-2 h-4 w-4"/> 
-              {isLoading ? (language === 'bn' ? 'প্রসেস হচ্ছে...' : 'Processing...') : (language === 'bn' ? 'Google দিয়ে লগইন' : 'Login with Google')}
+              {isSubmitting ? (language === 'bn' ? 'প্রসেস হচ্ছে...' : 'Processing...') : (language === 'bn' ? 'Google দিয়ে লগইন' : 'Login with Google')}
            </Button>
           <p className="text-sm text-muted-foreground text-center">
             {language === 'bn' ? 'অ্যাকাউন্ট নেই?' : "Don't have an account?"}{" "}
