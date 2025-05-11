@@ -2,8 +2,9 @@
 "use client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowRight, Gamepad2, Gift, ShieldCheck, Users, TrendingUp } from "lucide-react";
+import { ArrowRight, Gamepad2, Gift, ShieldCheck, Users, TrendingUp, Star, MessageSquare } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 import PromotionalSlider from "@/components/shared/promotional-slider";
 import { useLanguage } from "@/context/language-context";
 
@@ -97,6 +98,37 @@ export default function Home() {
         ))}
       </section>
 
+      {/* Brand Ambassador Section */}
+      <section className="py-12 bg-gradient-to-r from-card via-background to-card rounded-xl shadow-xl border border-border">
+        <div className="container mx-auto px-4 text-center">
+            <div className="flex flex-col items-center">
+                <Star className="h-12 w-12 text-gold mb-4 animate-pulse" />
+                <h2 className="text-3xl font-bold mb-4 text-gold">
+                    {language === 'bn' ? 'আমাদের ব্র্যান্ড অ্যাম্বাসেডর' : 'Our Brand Ambassador'}
+                </h2>
+                <div className="relative h-40 w-40 rounded-full overflow-hidden border-4 border-gold shadow-lg mb-6">
+                    <Image
+                        src="https://picsum.photos/300/300?random=ambassador" 
+                        alt={language === 'bn' ? "ব্র্যান্ড অ্যাম্বাসেডর" : "Brand Ambassador"}
+                        layout="fill"
+                        objectFit="cover"
+                        data-ai-hint="celebrity portrait" 
+                    />
+                </div>
+                <p className="text-lg text-muted-foreground mb-2">
+                    {language === 'bn' 
+                    ? 'এই সাইটটি আমাদের ব্র্যান্ড অ্যাম্বাসেডর সানি লিওন (উদাহরণ) দ্বারা অনুমোদিত।' 
+                    : 'This site is proudly endorsed by our Brand Ambassador: Sunny Leone (Example).'}
+                </p>
+                <p className="text-sm text-muted-foreground max-w-md mx-auto">
+                  {language === 'bn' 
+                  ? 'বাজিবাজের উত্তেজনাপূর্ণ জগতে আপনাকে স্বাগত জানাচ্ছেন আমাদের বিশেষ ব্র্যান্ড অ্যাম্বাসেডর!'
+                  : 'Our esteemed Brand Ambassador welcomes you to the thrilling world of Bajibuz!'}
+                </p>
+            </div>
+        </div>
+      </section>
+
       {/* Real-time Winners Board */}
       <section className="py-8">
         <h2 className="text-3xl font-bold text-center mb-8 text-gold">
@@ -122,6 +154,29 @@ export default function Home() {
          </p>
       </section>
 
+      {/* Legit Site Notice Section */}
+      <section className="py-10 bg-card rounded-xl shadow-lg">
+        <div className="container mx-auto px-4 text-center">
+          <ShieldCheck className="h-12 w-12 text-primary mx-auto mb-4" />
+          <h2 className="text-2xl font-semibold mb-3 text-foreground">
+            {language === 'bn' ? 'যাচাইকৃত ও নিরাপদ প্ল্যাটফর্ম' : 'Verified & Secure Platform'}
+          </h2>
+          <p className="text-muted-foreground mb-1">
+            {language === 'bn' 
+              ? 'আপনার সুরক্ষার জন্য এই সাইটটি নিয়মিতভাবে স্ক্যান এবং যাচাই করা হয়:' 
+              : 'This site is regularly scanned and verified for your safety by:'}
+          </p>
+          <p className="text-sm font-semibold text-primary">
+            SecureTrust, GambleVerify, BD Shield (উদাহরণস্বরূপ সংস্থা)
+          </p>
+          <p className="text-xs text-muted-foreground mt-3">
+            {language === 'bn' 
+              ? 'আমরা আপনার ডেটা সুরক্ষিত রাখতে এবং একটি ন্যায্য গেমিং পরিবেশ নিশ্চিত করতে প্রতিশ্রুতিবদ্ধ।' 
+              : 'We are committed to protecting your data and ensuring a fair gaming environment.'}
+          </p>
+        </div>
+      </section>
+
 
       {/* Call to Action Section */}
       <section className="text-center py-12 bg-card rounded-xl shadow-xl">
@@ -143,3 +198,4 @@ export default function Home() {
     </div>
   );
 }
+
