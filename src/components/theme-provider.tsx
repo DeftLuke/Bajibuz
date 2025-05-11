@@ -10,6 +10,8 @@ interface ThemeProviderProps {
   children: ReactNode;
   defaultTheme?: Theme;
   storageKey?: string;
+  attribute?: string; // Added to match next-themes like behavior, usually 'class'
+  enableSystem?: boolean; // Added for completeness, though not fully implemented here
 }
 
 interface ThemeProviderState {
@@ -28,28 +30,39 @@ export function ThemeProvider({
   children,
   defaultTheme = "light",
   storageKey = "bajibuz-theme",
+  attribute = "class", // Default to 'class' for applying to <html> or <body>
 }: ThemeProviderProps) {
-  const [theme, setTheme] = useState<Theme>(() => {
-    if (typeof window !== 'undefined') {
-      return (localStorage.getItem(storageKey) as Theme) || defaultTheme;
-    }
-    return defaultTheme;
-  });
-   const [isClient, setIsClient] = useState(false);
+  const [theme, setTheme] = useState<Theme>(defaultTheme); // Initialize with defaultTheme
+  const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
     setIsClient(true);
   }, []);
 
-
+  // Effect to load theme from localStorage once client is confirmed
   useEffect(() => {
-    if (!isClient) return;
+    if (isClient) {
+      const storedTheme = localStorage.getItem(storageKey) as Theme | null;
+      if (storedTheme && (storedTheme === 'light' || storedTheme === 'dark-teal')) {
+        setTheme(storedTheme);
+      }
+    }
+  }, [isClient, storageKey]); // Removed defaultTheme from deps as it's stable if not a prop
 
-    const root = window.document.documentElement;
-    root.classList.remove("light", "dark-teal");
-    root.classList.add(theme);
-    localStorage.setItem(storageKey, theme);
-  }, [theme, storageKey, isClient]);
+  // Effect to apply theme to DOM and update localStorage
+  useEffect(() => {
+    if (isClient) { 
+      const element = document.documentElement; // Assumes 'class' attribute on <html>
+
+      if (attribute === 'class') {
+        element.classList.remove("light", "dark-teal");
+        element.classList.add(theme);
+      } else {
+        element.setAttribute(attribute, theme);
+      }
+      localStorage.setItem(storageKey, theme);
+    }
+  }, [theme, isClient, storageKey, attribute]);
 
   const value = {
     theme,
