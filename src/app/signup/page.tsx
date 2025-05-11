@@ -8,14 +8,37 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { UserPlus, Mail } from "lucide-react";
 import Link from "next/link";
 import { useLanguage } from "@/context/language-context";
-
-// export const metadata = { // Static or server-generated
-//   title: "Sign Up - Bajibuz",
-//   description: "Create your Bajibuz account to play exciting casino games.",
-// };
+import { useRouter } from 'next/navigation';
+import { signInWithGoogle, createUserDocumentFromAuth } from '@/lib/firebase/auth';
+import { useToast } from "@/hooks/use-toast";
+import { useState } from "react";
 
 export default function SignupPage() {
   const { language } = useLanguage();
+  const router = useRouter();
+  const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleGoogleSignUp = async () => {
+    setIsLoading(true);
+    const userAuth = await signInWithGoogle();
+    if (userAuth) {
+      await createUserDocumentFromAuth(userAuth, { languagePreference: language });
+      // The AuthContext will handle setting localStorage for 'showWelcomeSpin'
+      toast({
+        title: language === 'bn' ? 'সফলভাবে সাইন আপ হয়েছে!' : "Successfully Signed Up!",
+        description: language === 'bn' ? `স্বাগতম, ${userAuth.displayName}!` : `Welcome, ${userAuth.displayName}!`,
+      });
+      router.push('/dashboard');
+    } else {
+      toast({
+        title: language === 'bn' ? 'সাইন আপ ব্যর্থ হয়েছে' : "Sign Up Failed",
+        description: language === 'bn' ? 'গুগল সাইন আপে একটি সমস্যা হয়েছে। অনুগ্রহ করে আবার চেষ্টা করুন।' : "There was an issue with Google Sign Up. Please try again.",
+        variant: "destructive",
+      });
+    }
+    setIsLoading(false);
+  };
 
   return (
     <div className="flex items-center justify-center py-12">
@@ -84,22 +107,22 @@ export default function SignupPage() {
           </div>
         </CardContent>
         <CardFooter className="flex flex-col gap-4">
-          <Button className="w-full" size="lg">
+          <Button className="w-full" size="lg" disabled={isLoading}>
             <UserPlus className="mr-2 h-5 w-5" /> 
-            {language === 'bn' ? 'সাইন আপ' : 'Sign Up'}
+            {isLoading && (language === 'bn' ? 'প্রসেস হচ্ছে...' : 'Processing...')}
+            {!isLoading && (language === 'bn' ? 'সাইন আপ' : 'Sign Up')}
           </Button>
+           <Button variant="outline" size="lg" className="w-full text-muted-foreground" onClick={handleGoogleSignUp} disabled={isLoading}>
+              <Mail className="mr-2 h-4 w-4"/> 
+              {isLoading && (language === 'bn' ? 'প্রসেস হচ্ছে...' : 'Processing...')}
+              {!isLoading && (language === 'bn' ? 'Google দিয়ে সাইন আপ' : 'Sign up with Google')}
+           </Button>
           <p className="text-sm text-muted-foreground text-center">
             {language === 'bn' ? 'ইতিমধ্যে একাউন্ট আছে?' : 'Already have an account?'}{" "}
             <Link href="/login" className="font-semibold text-primary hover:underline">
               {language === 'bn' ? 'লগইন করুন' : 'Login'}
             </Link>
           </p>
-          <div className="flex items-center justify-center space-x-4 mt-2">
-            <Button variant="outline" size="sm" className="text-muted-foreground">
-              <Mail className="mr-2 h-4 w-4"/> 
-              {language === 'bn' ? 'Google দিয়ে সাইন আপ' : 'Sign up with Google'}
-            </Button>
-          </div>
         </CardFooter>
       </Card>
     </div>

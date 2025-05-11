@@ -2,14 +2,14 @@
 // src/components/layout/header.tsx
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { 
   Home, Menu, LogIn, UserPlus, Search,
   Gift, Dices, UsersRound, Trophy, Ticket, AlignJustify, HelpCircle, Settings2, Replace,
-  Banknote, CreditCard, Award, UserCog, Bell, WalletCards, Tv, ChevronDown, Star, ShieldQuestion, UserCircle,
-  Gamepad2 // Ensure Gamepad2 is imported from lucide-react
+  Banknote, CreditCard, Award, UserCog, Bell, WalletCards, Tv, ChevronDown, Star, ShieldQuestion, UserCircle, LogOut,
+  Gamepad2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Logo } from './logo';
@@ -37,6 +37,17 @@ import {
 import { cn } from "@/lib/utils";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { useLanguage } from '@/context/language-context';
+import { useAuth } from '@/context/auth-context'; // Import useAuth
+import { signOutUser } from '@/lib/firebase/auth'; // Import signOutUser
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'; // Import Avatar components
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 
 const casinoGameCategoriesData = [
@@ -113,9 +124,9 @@ const mainNavLinksData = [
 ];
 
 const userActionLinksData = [
-    { href: '/dashboard', labelEn: 'Profile', labelBn: 'প্রোফাইল', icon: UserCircle },
-    { href: '/wallet', labelEn: 'KYC', labelBn: 'কেওয়াইসি', icon: ShieldQuestion},
-    { href: '/dashboard', labelEn: 'Settings', labelBn: 'সেটিংস', icon: Settings2 },
+    { href: '/dashboard', labelEn: 'Dashboard', labelBn: 'ড্যাশবোর্ড', icon: UserCircle },
+    { href: '/wallet', labelEn: 'Wallet', labelBn: 'ওয়ালেট', icon: WalletCards}, // Changed from KYC to Wallet
+    { href: '/dashboard?tab=profile', labelEn: 'Profile Settings', labelBn: 'প্রোফাইল সেটিংস', icon: Settings2 }, // Point to profile tab
 ];
 
 
@@ -182,15 +193,31 @@ GameThumbnailItem.displayName = "GameThumbnailItem";
 export function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { language } = useLanguage();
+  const { currentUser, loading } = useAuth(); // Use AuthContext
   
-  const walletBalance = "5,250.75"; // Placeholder
+  const [walletBalance, setWalletBalance] = useState("0.00"); // Placeholder
   const notificationCount = 3; // Placeholder
+
+  useEffect(() => {
+    if (currentUser) {
+      setWalletBalance(currentUser.walletBalance.toFixed(2));
+    } else {
+      setWalletBalance("0.00");
+    }
+  }, [currentUser]);
+
 
   const mainNavLinks = mainNavLinksData.map(link => ({...link, label: language === 'bn' ? link.labelBn : link.labelEn}));
   const userActionLinks = userActionLinksData.map(link => ({...link, label: language === 'bn' ? link.labelBn : link.labelEn}));
   const casinoGameCategories = casinoGameCategoriesData.map(cat => ({...cat, title: language === 'bn' ? cat.titleBn : cat.titleEn, description: language === 'bn' ? cat.descriptionBn : cat.descriptionEn, games: cat.games?.map(g => ({...g, name: language === 'bn' ? g.nameBn : g.nameEn})) }));
   const liveGameOptions = liveGameOptionsData.map(cat => ({...cat, title: language === 'bn' ? cat.titleBn : cat.titleEn, description: language === 'bn' ? cat.descriptionBn : cat.descriptionEn, games: cat.games?.map(g => ({...g, name: language === 'bn' ? g.nameBn : g.nameEn})) }));
 
+
+  const handleSignOut = async () => {
+    await signOutUser();
+    setIsMobileMenuOpen(false); // Close mobile menu on sign out
+    // router.push('/'); // Optionally redirect to home or login
+  };
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -232,7 +259,7 @@ export function Header() {
                   <AccordionItem value="casino-games">
                     <AccordionTrigger className="flex items-center space-x-3 rounded-md py-2.5 px-2 text-sm hover:bg-accent hover:text-accent-foreground hover:no-underline">
                       <Gamepad2 className="h-5 w-5 text-primary" />
-                      <span>{language === 'bn' ? 'ক্যাসিনো' : 'Casino'}</span>
+                       <span>{language === 'bn' ? 'ক্যাসিনো' : 'Casino'}</span>
                     </AccordionTrigger>
                     <AccordionContent className="pl-4">
                       {casinoGameCategories.map(category => (
@@ -263,32 +290,34 @@ export function Header() {
                   </AccordionItem>
                 </Accordion>
 
-                <Separator />
-                <p className="pt-2 text-xs font-semibold uppercase text-muted-foreground px-2">
-                  {language === 'bn' ? 'অ্যাকাউন্ট' : 'Account'}
-                </p>
-                  <SheetClose asChild>
-                    <Link href="/wallet" className="flex items-center space-x-3 rounded-md py-2.5 px-2 text-sm hover:bg-accent hover:text-accent-foreground" onClick={() => setIsMobileMenuOpen(false)}>
-                      <Banknote className="h-5 w-5 text-primary" /><span>{language === 'bn' ? 'জমা' : 'Deposit'}</span>
-                    </Link>
-                  </SheetClose>
-                  <SheetClose asChild>
-                    <Link href="/wallet" className="flex items-center space-x-3 rounded-md py-2.5 px-2 text-sm hover:bg-accent hover:text-accent-foreground" onClick={() => setIsMobileMenuOpen(false)}>
-                      <CreditCard className="h-5 w-5 text-primary" /><span>{language === 'bn' ? 'উত্তোলন' : 'Withdraw'}</span>
-                    </Link>
-                  </SheetClose>
-                  {userActionLinks.map((item) => (
-                     <SheetClose key={item.label} asChild>
-                        <Link href={item.href} className="flex items-center space-x-3 rounded-md py-2.5 px-2 text-sm hover:bg-accent hover:text-accent-foreground" onClick={() => setIsMobileMenuOpen(false)}>
-                           <item.icon className="h-5 w-5 text-primary" /><span>{item.label}</span>
-                        </Link>
-                     </SheetClose>
-                  ))}
+                {currentUser && (
+                  <>
+                    <Separator />
+                    <p className="pt-2 text-xs font-semibold uppercase text-muted-foreground px-2">
+                      {language === 'bn' ? 'আমার অ্যাকাউন্ট' : 'My Account'}
+                    </p>
+                    {userActionLinks.map((item) => (
+                       <SheetClose key={item.label} asChild>
+                          <Link href={item.href} className="flex items-center space-x-3 rounded-md py-2.5 px-2 text-sm hover:bg-accent hover:text-accent-foreground" onClick={() => setIsMobileMenuOpen(false)}>
+                             <item.icon className="h-5 w-5 text-primary" /><span>{item.label}</span>
+                          </Link>
+                       </SheetClose>
+                    ))}
+                  </>
+                )}
               </nav>
 
               <div className="border-t border-border p-4 space-y-2.5">
-                <Button variant="outline" className="w-full" asChild><Link href="/login" onClick={() => setIsMobileMenuOpen(false)}><LogIn className="mr-2 h-4 w-4" /> {language === 'bn' ? 'লগইন' : 'Login'}</Link></Button>
-                <Button className="w-full" asChild><Link href="/signup" onClick={() => setIsMobileMenuOpen(false)}><UserPlus className="mr-2 h-4 w-4" />{language === 'bn' ? 'সাইন আপ' : 'Sign Up'}</Link></Button>
+                {currentUser ? (
+                  <Button variant="outline" className="w-full" onClick={handleSignOut}>
+                    <LogOut className="mr-2 h-4 w-4" /> {language === 'bn' ? 'লগআউট' : 'Logout'}
+                  </Button>
+                ) : (
+                  <>
+                    <Button variant="outline" className="w-full" asChild><Link href="/login" onClick={() => setIsMobileMenuOpen(false)}><LogIn className="mr-2 h-4 w-4" /> {language === 'bn' ? 'লগইন' : 'Login'}</Link></Button>
+                    <Button className="w-full" asChild><Link href="/signup" onClick={() => setIsMobileMenuOpen(false)}><UserPlus className="mr-2 h-4 w-4" />{language === 'bn' ? 'সাইন আপ' : 'Sign Up'}</Link></Button>
+                  </>
+                )}
               </div>
             </SheetContent>
           </Sheet>
@@ -371,17 +400,20 @@ export function Header() {
         </NavigationMenu>
 
         <div className="flex items-center space-x-1 md:space-x-2 ml-auto">
-          <Button variant="outline" size="sm" className="hidden md:inline-flex" asChild>
-            <Link href="/wallet"><Banknote className="mr-1.5 h-4 w-4" /> {language === 'bn' ? 'জমা' : 'Deposit'}</Link>
-          </Button>
-          <Button variant="outline" size="sm" className="hidden md:inline-flex" asChild>
-            <Link href="/wallet"><CreditCard className="mr-1.5 h-4 w-4" /> {language === 'bn' ? 'উত্তোলন' : 'Withdraw'}</Link>
-          </Button>
-
-          <Link href="/wallet" className="hidden md:flex items-center p-2 hover:bg-accent rounded-md" aria-label="Wallet">
-            <WalletCards className="h-5 w-5 text-primary" />
-            <span className="ml-1.5 text-xs font-medium text-muted-foreground">৳{walletBalance}</span>
-          </Link>
+          {currentUser && (
+            <>
+              <Button variant="outline" size="sm" className="hidden md:inline-flex" asChild>
+                <Link href="/wallet"><Banknote className="mr-1.5 h-4 w-4" /> {language === 'bn' ? 'জমা' : 'Deposit'}</Link>
+              </Button>
+              <Button variant="outline" size="sm" className="hidden md:inline-flex" asChild>
+                <Link href="/wallet"><CreditCard className="mr-1.5 h-4 w-4" /> {language === 'bn' ? 'উত্তোলন' : 'Withdraw'}</Link>
+              </Button>
+              <Link href="/wallet" className="hidden md:flex items-center p-2 hover:bg-accent rounded-md" aria-label="Wallet">
+                <WalletCards className="h-5 w-5 text-primary" />
+                <span className="ml-1.5 text-xs font-medium text-muted-foreground">৳{walletBalance}</span>
+              </Link>
+            </>
+          )}
 
           <Button variant="ghost" size="icon" className="relative" aria-label="Notifications">
             <Bell className="h-5 w-5" />
@@ -393,21 +425,64 @@ export function Header() {
             )}
           </Button>
           
-          <Link href="/dashboard" className="hidden md:inline-flex p-2 hover:bg-accent rounded-md" aria-label="Profile and KYC">
-             <UserCog className="h-5 w-5" />
-          </Link>
-
           <ThemeToggle />
           <LanguageToggle />
           
-          <div className="hidden md:flex items-center space-x-2">
-            <Button variant="ghost" size="sm" asChild>
-              <Link href="/login"><LogIn className="mr-1.5 h-4 w-4" /> {language === 'bn' ? 'লগইন' : 'Login'}</Link>
-            </Button>
-            <Button size="sm" asChild>
-              <Link href="/signup"><UserPlus className="mr-1.5 h-4 w-4" />{language === 'bn' ? 'সাইন আপ' : 'Sign Up'}</Link>
-            </Button>
-          </div>
+          {!loading && currentUser ? (
+             <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="relative h-9 w-9 rounded-full">
+                  <Avatar className="h-8 w-8">
+                    <AvatarImage src={currentUser.avatar || `https://picsum.photos/seed/${currentUser.uid}/32/32`} alt={currentUser.name} />
+                    <AvatarFallback>{currentUser.name?.substring(0,1).toUpperCase()}</AvatarFallback>
+                  </Avatar>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-56" align="end" forceMount>
+                <DropdownMenuLabel className="font-normal">
+                  <div className="flex flex-col space-y-1">
+                    <p className="text-sm font-medium leading-none">{currentUser.name}</p>
+                    <p className="text-xs leading-none text-muted-foreground">
+                      {currentUser.email}
+                    </p>
+                  </div>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <Link href="/dashboard">
+                    <UserCircle className="mr-2 h-4 w-4" />
+                    <span>{language === 'bn' ? 'ড্যাশবোর্ড' : 'Dashboard'}</span>
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/wallet">
+                    <WalletCards className="mr-2 h-4 w-4" />
+                    <span>{language === 'bn' ? 'আমার ওয়ালেট' : 'My Wallet'}</span>
+                  </Link>
+                </DropdownMenuItem>
+                 <DropdownMenuItem asChild>
+                  <Link href="/dashboard?tab=profile"> {/* Direct link to profile settings */}
+                    <Settings2 className="mr-2 h-4 w-4" />
+                    <span>{language === 'bn' ? 'প্রোফাইল সেটিংস' : 'Profile Settings'}</span>
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleSignOut}>
+                  <LogOut className="mr-2 h-4 w-4" />
+                  <span>{language === 'bn' ? 'লগআউট' : 'Logout'}</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : !loading && !currentUser ? (
+            <div className="hidden md:flex items-center space-x-2">
+              <Button variant="ghost" size="sm" asChild>
+                <Link href="/login"><LogIn className="mr-1.5 h-4 w-4" /> {language === 'bn' ? 'লগইন' : 'Login'}</Link>
+              </Button>
+              <Button size="sm" asChild>
+                <Link href="/signup"><UserPlus className="mr-1.5 h-4 w-4" />{language === 'bn' ? 'সাইন আপ' : 'Sign Up'}</Link>
+              </Button>
+            </div>
+          ): null /* Show nothing while loading initial auth state */ }
         </div>
       </div>
     </header>

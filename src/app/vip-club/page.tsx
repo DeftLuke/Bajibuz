@@ -2,15 +2,12 @@
 "use client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Award, Star, Diamond, ShieldCheck, Gift } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Award, Star, Diamond, ShieldCheck, Gift, UserCheck } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useLanguage } from "@/context/language-context";
-
-// export const metadata = { // Static or server-generated
-//   title: "VIP Club - Bajibuz",
-//   description: "Join the exclusive Bajibuz VIP Club for special rewards, higher limits, and personalized service.",
-// };
+import { useAuth } from "@/context/auth-context"; // Import useAuth
 
 const vipTiersData = [
   {
@@ -53,6 +50,18 @@ const vipTiersData = [
 
 export default function VipClubPage() {
   const { language } = useLanguage();
+  const { currentUser } = useAuth(); // Get current user
+
+  const getKycStatusText = (status: string | undefined) => {
+    if (!status) return language === 'bn' ? 'স্ট্যাটাস অজানা' : 'Status Unknown';
+    switch (status) {
+      case 'pending': return language === 'bn' ? 'বিবেচনাধীন' : 'Pending';
+      case 'verified': return language === 'bn' ? 'যাচাইকৃত' : 'Verified';
+      case 'rejected': return language === 'bn' ? 'প্রত্যাখ্যাত' : 'Rejected';
+      case 'not_submitted': return language === 'bn' ? 'জমা দেওয়া হয়নি' : 'Not Submitted';
+      default: return status;
+    }
+  };
 
   return (
     <div className="space-y-12">
@@ -67,6 +76,36 @@ export default function VipClubPage() {
             : 'Exclusive benefits and rewards for our loyal players.'}
         </p>
       </header>
+
+      {currentUser && (
+        <Card className="shadow-md mb-8 border-primary/20">
+          <CardHeader>
+            <CardTitle className="text-xl flex items-center">
+              <UserCheck className="mr-2 h-6 w-6 text-primary" />
+              {language === 'bn' ? 'আপনার স্ট্যাটাস' : 'Your Status'}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-muted-foreground">
+              {language === 'bn' ? 'বর্তমান ভিআইপি স্তর: ' : 'Current VIP Tier: '} 
+              <Badge variant="secondary">{language === 'bn' ? 'ব্রোঞ্জ (উদাহরণ)' : 'Bronze (Example)'}</Badge>
+            </p>
+            <p className="text-muted-foreground mt-2">
+              {language === 'bn' ? 'কেওয়াইসি স্ট্যাটাস: ' : 'KYC Status: '}
+              <Badge variant={currentUser.kycStatus === 'verified' ? 'default' : 'destructive'}>
+                {getKycStatusText(currentUser.kycStatus)}
+              </Badge>
+              {currentUser.kycStatus !== 'verified' && (
+                 <Button variant="link" asChild className="ml-2 px-0">
+                    <Link href="/dashboard?tab=profile">
+                        {language === 'bn' ? 'কেওয়াইসি সম্পন্ন করুন' : 'Complete KYC'}
+                    </Link>
+                 </Button>
+              )}
+            </p>
+          </CardContent>
+        </Card>
+      )}
 
       <Card className="shadow-xl bg-gradient-to-br from-card via-card to-primary/5 border-primary/20">
         <CardHeader>
