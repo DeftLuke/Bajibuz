@@ -1,3 +1,4 @@
+
 import type { Metadata } from 'next';
 import { Geist } from 'next/font/google'; // Geist_Mono can be removed if not used for mono spaced code blocks.
 import './globals.css';
@@ -6,6 +7,7 @@ import { Footer } from '@/components/layout/footer';
 import { Toaster } from "@/components/ui/toaster";
 import DailySpinPopupWrapper from '@/components/shared/daily-spin-popup-wrapper';
 import { ThemeProvider } from '@/components/theme-provider';
+import { LanguageProvider } from '@/context/language-context';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -50,15 +52,17 @@ export default function RootLayout({
           enableSystem={false} 
           storageKey="bajibuz-theme"
         >
-          <div className="flex flex-col flex-1"> {/* Wrapper for consistent full height */}
-            <Header />
-            <main className="flex-grow container mx-auto px-4 py-8">
-              {children}
-            </main>
-            <Footer />
-          </div>
-          <Toaster />
-          <DailySpinPopupWrapper />
+          <LanguageProvider>
+            <div className="flex flex-col flex-1"> {/* Wrapper for consistent full height */}
+              <Header />
+              <main className="flex-grow container mx-auto px-4 py-8">
+                {children}
+              </main>
+              <Footer />
+            </div>
+            <Toaster />
+            <DailySpinPopupWrapper />
+          </LanguageProvider>
         </ThemeProvider>
       </body>
     </html>

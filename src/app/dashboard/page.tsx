@@ -1,19 +1,30 @@
-import { DashboardClient } from "@/components/dashboard/dashboard-client";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { UserCircle } from "lucide-react";
 
-export const metadata = {
-  title: "User Dashboard - Bajibuz",
-  description: "Manage your profile, wallet, and view transaction history on Bajibuz.",
-};
+"use client";
+import { DashboardClient } from "@/components/dashboard/dashboard-client";
+import { Card, CardContent } from "@/components/ui/card";
+import { UserCircle } from "lucide-react";
+import { useLanguage } from "@/context/language-context";
+
+// export const metadata = { // Metadata should be static or server-generated
+//   title: "User Dashboard - Bajibuz",
+//   description: "Manage your profile, wallet, and view transaction history on Bajibuz.",
+// };
 
 export default function DashboardPage() {
+  const { language } = useLanguage();
+
   return (
     <div className="space-y-8">
       <header className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">ড্যাশবোর্ড (Dashboard)</h1>
-          <p className="text-muted-foreground">স্বাগতম, খেলোয়াড়! আপনার অ্যাকাউন্ট এখানে পরিচালনা করুন। (Welcome back, Player! Manage your account here.)</p>
+          <h1 className="text-3xl font-bold text-foreground">
+            {language === 'bn' ? 'ড্যাশবোর্ড' : 'Dashboard'}
+          </h1>
+          <p className="text-muted-foreground">
+            {language === 'bn' 
+              ? 'স্বাগতম, খেলোয়াড়! আপনার অ্যাকাউন্ট এখানে পরিচালনা করুন।' 
+              : 'Welcome back, Player! Manage your account here.'}
+          </p>
         </div>
         <UserCircle className="h-10 w-10 text-primary" />
       </header>

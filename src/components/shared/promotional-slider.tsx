@@ -1,3 +1,4 @@
+
 // src/components/shared/promotional-slider.tsx
 "use client";
 
@@ -6,110 +7,127 @@ import Image from 'next/image';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
+import { useLanguage } from '@/context/language-context';
 
-const slides = [
+const slidesData = [
   {
     id: 1,
-    title: "আজই জয় করুন লক্ষ টাকা বোনাস!",
-    description: "আপনার প্রথম জমাতে সম্পূর্ণ ১০০% বোনাস পান, লক্ষ টাকা পর্যন্ত! এখনই যোগ দিন এবং আপনার জয় দ্বিগুণ করুন।",
+    titleEn: "Win Lakhs in Bonuses Today!",
+    titleBn: "আজই জয় করুন লক্ষ টাকা বোনাস!",
+    descriptionEn: "Get a full 100% bonus on your first deposit, up to lakhs! Join now and double your winnings.",
+    descriptionBn: "আপনার প্রথম জমাতে সম্পূর্ণ ১০০% বোনাস পান, লক্ষ টাকা পর্যন্ত! এখনই যোগ দিন এবং আপনার জয় দ্বিগুণ করুন।",
     imageUrl: "https://picsum.photos/1200/400?random=51",
-    dataAiHint: "money gift treasure",
+    dataAiHint: "casino jackpot coins",
     link: "/promotions#welcome-bonus",
-    buttonText: "বোনাস নিন"
+    buttonTextEn: "Claim Bonus",
+    buttonTextBn: "বোনাস নিন"
   },
   {
     id: 2,
-    title: "ফ্রি স্পিনে জিতে নিন ক্যাশব্যাক!",
-    description: "লাকি হুইলে আপনার ভাগ্য পরীক্ষা করুন প্রতিদিন! নগদ টাকা, ফ্রি স্পিন, ক্যাশব্যাক এবং আরও অনেক আকর্ষণীয় পুরস্কার জিতুন।",
+    titleEn: "Win Cashback on Free Spins!",
+    titleBn: "ফ্রি স্পিনে জিতে নিন ক্যাশব্যাক!",
+    descriptionEn: "Try your luck on the Lucky Wheel daily! Win cash, free spins, cashback, and many more exciting prizes.",
+    descriptionBn: "লাকি হুইলে আপনার ভাগ্য পরীক্ষা করুন প্রতিদিন! নগদ টাকা, ফ্রি স্পিন, ক্যাশব্যাক এবং আরও অনেক আকর্ষণীয় পুরস্কার জিতুন।",
     imageUrl: "https://picsum.photos/1200/400?random=52",
     dataAiHint: "fortune wheel jackpot",
     link: "/promotions#daily-spin",
-    buttonText: "এখনই স্পিন করুন"
+    buttonTextEn: "Spin Now",
+    buttonTextBn: "এখনই স্পিন করুন"
   },
   {
     id: 3,
-    title: "আজকের হট গেম: ব্ল্যাকজ্যাক – এখনই খেলুন!",
-    description: "আমাদের জনপ্রিয় ব্ল্যাকজ্যাক টেবিলে যোগ দিন আর ডিলারকে হারানোর রোমাঞ্চ অনুভব করুন। বড় জয়ের সুযোগ আপনার হাতে!",
+    titleEn: "Today's Hot Game: Blackjack – Play Now!",
+    titleBn: "আজকের হট গেম: ব্ল্যাকজ্যাক – এখনই খেলুন!",
+    descriptionEn: "Join our popular Blackjack table and experience the thrill of beating the dealer. Big wins are in your hands!",
+    descriptionBn: "আমাদের জনপ্রিয় ব্ল্যাকজ্যাক টেবিলে যোগ দিন আর ডিলারকে হারানোর রোমাঞ্চ অনুভব করুন। বড় জয়ের সুযোগ আপনার হাতে!",
     imageUrl: "https://picsum.photos/1200/400?random=53",
     dataAiHint: "blackjack cards table",
     link: "/games?category=table-games",
-    buttonText: "খেলুন"
+    buttonTextEn: "Play",
+    buttonTextBn: "খেলুন"
   },
   {
     id: 4,
-    title: "ঈদ অফার: স্পেশাল ক্যাশব্যাক এবং ফ্রি বেট!",
-    description: "এই ঈদে Bajibuz নিয়ে এলো বিশেষ অফার! নির্বাচিত গেমগুলোতে পান দারুণ ক্যাশব্যাক এবং ফ্রি বেট। ঈদের আনন্দ হোক দ্বিগুণ!",
+    titleEn: "Eid Offer: Special Cashback and Free Bets!",
+    titleBn: "ঈদ অফার: স্পেশাল ক্যাশব্যাক এবং ফ্রি বেট!",
+    descriptionEn: "This Eid, Bajibuz brings special offers! Get amazing cashback and free bets on selected games. Double your Eid joy!",
+    descriptionBn: "এই ঈদে Bajibuz নিয়ে এলো বিশেষ অফার! নির্বাচিত গেমগুলোতে পান দারুণ ক্যাশব্যাক এবং ফ্রি বেট। ঈদের আনন্দ হোক দ্বিগুণ!",
     imageUrl: "https://picsum.photos/1200/400?random=54",
-    dataAiHint: "eid celebration festive",
+    dataAiHint: "casino promotion festive",
     link: "/promotions#eid-offer",
-    buttonText: "অফার দেখুন"
+    buttonTextEn: "View Offer",
+    buttonTextBn: "অফার দেখুন"
   },
   {
     id: 5,
-    title: "বন্ধুকে ইনভাইট করুন, দুজনেই বোনাস পান!",
-    description: "Bajibuz-এ আপনার বন্ধুদের আমন্ত্রণ জানান আর প্রতি রেফারেলে আকর্ষণীয় বোনাস উপভোগ করুন। একসাথে খেলুন, একসাথে জিতুন!",
+    titleEn: "Invite Friends, Both Get Bonuses!",
+    titleBn: "বন্ধুকে ইনভাইট করুন, দুজনেই বোনাস পান!",
+    descriptionEn: "Invite your friends to Bajibuz and enjoy attractive bonuses for every referral. Play together, win together!",
+    descriptionBn: "Bajibuz-এ আপনার বন্ধুদের আমন্ত্রণ জানান আর প্রতি রেফারেলে আকর্ষণীয় বোনাস উপভোগ করুন। একসাথে খেলুন, একসাথে জিতুন!",
     imageUrl: "https://picsum.photos/1200/400?random=55",
-    dataAiHint: "friends sharing bonus",
+    dataAiHint: "referral bonus casino",
     link: "/promotions#referral",
-    buttonText: "ইনভাইট করুন"
+    buttonTextEn: "Invite",
+    buttonTextBn: "ইনভাইট করুন"
   },
 ];
 
 export default function PromotionalSlider() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isClient, setIsClient] = useState(false);
+  const { language } = useLanguage();
 
   useEffect(() => {
     setIsClient(true);
   }, []);
 
   useEffect(() => {
-    if (!isClient) return; // Don't run effect on server
+    if (!isClient) return; 
     
     const timer = setTimeout(() => {
       handleNext();
-    }, 7000); // Auto-slide every 7 seconds
+    }, 7000); 
     return () => clearTimeout(timer);
-  }, [currentIndex, isClient]); // Add isClient to dependencies
+  }, [currentIndex, isClient]); 
 
   const handlePrev = () => {
-    setCurrentIndex((prevIndex) => (prevIndex === 0 ? slides.length - 1 : prevIndex - 1));
+    setCurrentIndex((prevIndex) => (prevIndex === 0 ? slidesData.length - 1 : prevIndex - 1));
   };
 
   const handleNext = () => {
-    setCurrentIndex((prevIndex) => (prevIndex === slides.length - 1 ? 0 : prevIndex + 1));
+    setCurrentIndex((prevIndex) => (prevIndex === slidesData.length - 1 ? 0 : prevIndex + 1));
   };
   
-  if (!isClient) {
-    // Render a static placeholder or the first slide on the server to avoid layout shift and hydration errors
-    const slide = slides[0];
+  if (!isClient && typeof window === 'undefined') { // Ensure this runs only on server or before client hydration
+    const slide = slidesData[0];
     return (
       <div className="relative w-full h-64 md:h-80 lg:h-[400px] rounded-xl overflow-hidden shadow-2xl bg-card">
         <Image
           src={slide.imageUrl}
-          alt={slide.title}
+          alt={language === 'bn' ? slide.titleBn : slide.titleEn}
           layout="fill"
           objectFit="cover"
-          priority // Prioritize the first image for LCP
+          priority
           data-ai-hint={slide.dataAiHint}
         />
         <div className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center text-center p-4 sm:p-6">
-          <h2 className="text-xl sm:text-2xl md:text-4xl font-bold text-primary-foreground mb-2 sm:mb-3 drop-shadow-lg">{slide.title}</h2>
-          <p className="text-xs sm:text-sm md:text-lg text-primary-foreground/80 mb-4 sm:mb-6 max-w-md sm:max-w-xl drop-shadow-md">{slide.description}</p>
+          <h2 className="text-xl sm:text-2xl md:text-4xl font-bold text-primary-foreground mb-2 sm:mb-3 drop-shadow-lg">
+            {language === 'bn' ? slide.titleBn : slide.titleEn}
+          </h2>
+          <p className="text-xs sm:text-sm md:text-lg text-primary-foreground/80 mb-4 sm:mb-6 max-w-md sm:max-w-xl drop-shadow-md">
+            {language === 'bn' ? slide.descriptionBn : slide.descriptionEn}
+          </p>
           <Button size="lg" asChild>
-            <Link href={slide.link}>{slide.buttonText}</Link>
+            <Link href={slide.link}>{language === 'bn' ? slide.buttonTextBn : slide.buttonTextEn}</Link>
           </Button>
         </div>
       </div>
     );
   }
 
-
-  const currentSlide = slides[currentIndex];
-
   return (
     <div className="relative w-full h-64 md:h-80 lg:h-[400px] rounded-xl overflow-hidden shadow-2xl group">
-      {slides.map((slide, index) => (
+      {slidesData.map((slide, index) => (
         <div
           key={slide.id}
           className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${index === currentIndex ? 'opacity-100 z-10' : 'opacity-0 z-0'}`}
@@ -117,7 +135,7 @@ export default function PromotionalSlider() {
         >
           <Image
             src={slide.imageUrl}
-            alt={slide.title}
+            alt={language === 'bn' ? slide.titleBn : slide.titleEn}
             layout="fill"
             objectFit="cover"
             priority={index === 0} 
@@ -125,10 +143,14 @@ export default function PromotionalSlider() {
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           />
           <div className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center text-center p-4 sm:p-6">
-            <h2 className="text-xl sm:text-2xl md:text-4xl font-bold text-primary-foreground mb-2 sm:mb-3 drop-shadow-lg animate-fade-in-down">{slide.title}</h2>
-            <p className="text-xs sm:text-sm md:text-lg text-primary-foreground/80 mb-4 sm:mb-6 max-w-md sm:max-w-xl drop-shadow-md animate-fade-in-up">{slide.description}</p>
+            <h2 className="text-xl sm:text-2xl md:text-4xl font-bold text-primary-foreground mb-2 sm:mb-3 drop-shadow-lg animate-fade-in-down">
+              {language === 'bn' ? slide.titleBn : slide.titleEn}
+            </h2>
+            <p className="text-xs sm:text-sm md:text-lg text-primary-foreground/80 mb-4 sm:mb-6 max-w-md sm:max-w-xl drop-shadow-md animate-fade-in-up">
+              {language === 'bn' ? slide.descriptionBn : slide.descriptionEn}
+            </p>
             <Button size="lg" asChild className="animate-fade-in-up animation-delay-300">
-              <Link href={slide.link}>{slide.buttonText}</Link>
+              <Link href={slide.link}>{language === 'bn' ? slide.buttonTextBn : slide.buttonTextEn}</Link>
             </Button>
           </div>
         </div>
@@ -154,7 +176,7 @@ export default function PromotionalSlider() {
       </Button>
 
       <div className="absolute bottom-2 sm:bottom-4 left-1/2 -translate-x-1/2 z-20 flex space-x-1.5 sm:space-x-2">
-        {slides.map((_, index) => (
+        {slidesData.map((_, index) => (
           <button
             key={index}
             onClick={() => setCurrentIndex(index)}
