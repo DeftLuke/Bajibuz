@@ -1,4 +1,3 @@
-
 // src/app/layout.tsx
 import type { Metadata } from 'next';
 import { ThemeProvider } from '@/components/theme-provider';
@@ -7,13 +6,10 @@ import { AuthProvider } from '@/context/auth-context';
 import { Header } from '@/components/layout/header';
 import { Footer } from '@/components/layout/footer';
 import { Toaster } from '@/components/ui/toaster';
-import DailySpinPopupWrapper from '@/components/shared/daily-spin-popup-wrapper';
-import LoginBonusPopupWrapper from '@/components/shared/login-bonus-popup-wrapper'; // Import LoginBonusPopupWrapper
+import LoginBonusPopupWrapper from '@/components/shared/login-bonus-popup-wrapper'; 
 import './globals.css';
+import { GeistSans } from 'geist/font/sans';
 
-const geistSans = {
-  variable: '', 
-};
 
 export const metadata: Metadata = {
   title: 'Bajibuz - Bangladesh\'s Most Trusted Online Casino',
@@ -37,7 +33,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${geistSans.variable} flex flex-col min-h-screen`} suppressHydrationWarning={true}>
+      <body className={`${GeistSans.variable} flex flex-col min-h-screen`} suppressHydrationWarning={true}>
         <ThemeProvider
           attribute="class"
           defaultTheme="light"
@@ -54,8 +50,7 @@ export default function RootLayout({
                 <Footer />
               </div>
               <Toaster />
-              <DailySpinPopupWrapper />
-              <LoginBonusPopupWrapper /> {/* Add LoginBonusPopupWrapper here */}
+              <LoginBonusPopupWrapper /> 
             </AuthProvider>
           </LanguageProvider>
         </ThemeProvider>

@@ -1,4 +1,3 @@
-
 "use client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -9,28 +8,37 @@ import { Edit3, ShieldAlert, ShieldCheck, UploadCloud, Phone, KeyRound, User, Wa
 import { useLanguage } from "@/context/language-context";
 import { useAuth } from "@/context/auth-context";
 import { Badge } from "@/components/ui/badge";
-import { useState, type FormEvent } from "react";
+import { useState, type FormEvent, type ChangeEvent } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { updateUserDocument, updateUserPassword } from "@/lib/firebase/auth";
-import { updateProfile as firebaseUpdateProfile } from "firebase/auth"; // Corrected import
+import { updateProfile as firebaseUpdateProfile } from "firebase/auth";
 import { auth } from "@/config/firebase";
+import type { UserProfile } from '@/context/auth-context';
 
 
 export default function ProfileSection() {
   const { language } = useLanguage();
-  const { currentUser, updateCurrentUserProfile } = useAuth();
+  const { currentUser, updateCurrentUserProfile, loading: authLoading } = useAuth();
   const { toast } = useToast();
 
-  const [displayName, setDisplayName] = useState(currentUser?.name || '');
-  // For avatar, we'll use a placeholder for actual upload logic
-  const [avatarUrl, setAvatarUrl] = useState(currentUser?.avatar || ''); 
+  const [displayName, setDisplayName] = useState('');
+  const [avatarUrl, setAvatarUrl] = useState(''); 
+  const [newAvatarFile, setNewAvatarFile] = useState<File | null>(null);
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmNewPassword, setConfirmNewPassword] = useState('');
   const [isSubmittingProfile, setIsSubmittingProfile] = useState(false);
   const [isSubmittingPassword, setIsSubmittingPassword] = useState(false);
 
-  if (!currentUser) {
+  useEffect(() => {
+    if (currentUser) {
+      setDisplayName(currentUser.name || '');
+      setAvatarUrl(currentUser.avatar || `https://picsum.photos/seed/${currentUser.uid}/100/100`);
+    }
+  }, [currentUser]);
+
+
+  if (authLoading || !currentUser) {
     return (
       <Card className="border-none shadow-none">
         <CardHeader>
@@ -44,30 +52,52 @@ export default function ProfileSection() {
       </Card>
     );
   }
+  
+  const handleAvatarChange = (event: ChangeEvent<HTMLInputElement>) => {
+    if (event.target.files && event.target.files[0]) {
+      const file = event.target.files[0];
+      setNewAvatarFile(file); // Store the file itself if you plan to upload
+      const reader = new FileReader();
+      reader.onload = (loadEvent) => {
+        setAvatarUrl(loadEvent.target?.result as string); // Preview new avatar
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
 
   const handleProfileUpdate = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!currentUser) return;
     setIsSubmittingProfile(true);
 
-    const updates: Partial<typeof currentUser> = {};
-    if (displayName !== currentUser.name) updates.name = displayName;
-    // Add avatar update logic here if implementing file upload
-    // if (newAvatarFile) { /* ... upload logic ... */ updates.avatar = uploadedAvatarUrl; }
+    const updates: Partial<UserProfile> = {};
+    if (displayName !== currentUser.name) {
+      updates.name = displayName;
+    }
+    // If avatarUrl was changed by selecting a new file (it will be a data URI)
+    // and it's different from the original currentUser.avatar
+    if (avatarUrl && avatarUrl !== currentUser.avatar && avatarUrl.startsWith('data:image')) {
+       updates.avatar = avatarUrl;
+    }
 
 
     try {
       if (Object.keys(updates).length > 0) {
-        await updateCurrentUserProfile(updates); // This updates both Firestore and context
-         // Also update Firebase Auth display name if it changed
+        await updateCurrentUserProfile(updates); 
+        
         if (updates.name && auth.currentUser) {
             await firebaseUpdateProfile(auth.currentUser, { displayName: updates.name });
+        }
+        if (updates.avatar && auth.currentUser) { 
+            await firebaseUpdateProfile(auth.currentUser, { photoURL: updates.avatar });
         }
       }
       toast({
         title: language === 'bn' ? 'প্রোফাইল আপডেট হয়েছে' : 'Profile Updated',
         description: language === 'bn' ? 'আপনার তথ্য সফলভাবে সংরক্ষণ করা হয়েছে।' : 'Your information has been saved successfully.',
       });
+      setNewAvatarFile(null); // Reset new avatar file state
     } catch (error: any) {
       toast({
         title: language === 'bn' ? 'আপডেট ব্যর্থ হয়েছে' : 'Update Failed',
@@ -94,9 +124,6 @@ export default function ProfileSection() {
 
     setIsSubmittingPassword(true);
     try {
-      // For email provider, current password is required for re-authentication before password change.
-      // For Google provider, this step might be different or not directly applicable via client SDK for password change.
-      // Firebase handles password changes for its own system.
       await updateUserPassword(newPassword, currentUser.signupMethod === 'email' ? currentPassword : undefined);
       toast({
         title: language === 'bn' ? 'পাসওয়ার্ড পরিবর্তিত হয়েছে' : 'Password Changed',
@@ -147,7 +174,7 @@ export default function ProfileSection() {
                 <CardTitle className="text-xl mb-4 flex items-center"><User className="mr-2 h-5 w-5 text-primary"/>{language === 'bn' ? 'ব্যক্তিগত তথ্য' : 'Personal Information'}</CardTitle>
                 <div className="flex items-center space-x-4 mb-6">
                     <Avatar className="h-24 w-24">
-                        <AvatarImage src={avatarUrl || `https://picsum.photos/seed/${currentUser.uid}/100/100`} alt={currentUser.name || "User Avatar"} data-ai-hint="person avatar" />
+                        <AvatarImage src={avatarUrl} alt={currentUser.name || "User Avatar"} data-ai-hint="person avatar" />
                         <AvatarFallback>{currentUser.name?.substring(0, 2).toUpperCase()}</AvatarFallback>
                     </Avatar>
                     <div>
@@ -157,17 +184,7 @@ export default function ProfileSection() {
                                 {language === 'bn' ? 'ছবি পরিবর্তন' : 'Change Avatar'}
                             </Button>
                         </Label>
-                        <Input id="avatarUpload" type="file" accept="image/*" className="hidden" onChange={(e) => {
-                            if (e.target.files && e.target.files[0]) {
-                                // Placeholder for actual upload and URL retrieval
-                                const reader = new FileReader();
-                                reader.onload = (event) => {
-                                    setAvatarUrl(event.target?.result as string);
-                                };
-                                reader.readAsDataURL(e.target.files[0]);
-                                toast({ description: language === 'bn' ? "ছবি আপলোড কার্যকারিতা ডেমো।" : "Avatar upload is a demo."});
-                            }
-                        }}/>
+                        <Input id="avatarUpload" type="file" accept="image/*" className="hidden" onChange={handleAvatarChange}/>
                         <p className="text-xs text-muted-foreground mt-1">
                         {language === 'bn' ? 'JPG, GIF বা PNG. সর্বোচ্চ ১MB।' : 'JPG, GIF or PNG. 1MB max.'}
                         </p>

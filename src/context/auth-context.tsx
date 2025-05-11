@@ -1,4 +1,3 @@
-
 'use client';
 
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
@@ -51,36 +50,42 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const unsubscribe = onAuthStateChangedListener(async (user: FirebaseUser | null) => {
       if (user) {
-        let userProfileDoc = await getUserProfile(user.uid);
+        try {
+          let userProfileDoc = await getUserProfile(user.uid);
 
-        if (!userProfileDoc) {
-          userProfileDoc = await createUserDocumentFromAuth(user, {
-            name: user.displayName || undefined,
-            email: user.email || undefined,
-            signupMethod: user.providerData.some(p => p.providerId === 'google.com') ? 'google' : 'email',
-            avatar: user.photoURL || `https://picsum.photos/seed/${user.uid}/100/100`,
-          });
-        }
-        
-        if (userProfileDoc) {
-          const createdAtDate =
-            userProfileDoc.createdAt instanceof Date
-              ? userProfileDoc.createdAt
-              : (userProfileDoc.createdAt as unknown as Timestamp)?.toDate?.() || new Date();
+          if (!userProfileDoc) {
+            userProfileDoc = await createUserDocumentFromAuth(user, {
+              name: user.displayName || undefined,
+              email: user.email || undefined,
+              signupMethod: user.providerData.some(p => p.providerId === 'google.com') ? 'google' : 'email',
+              avatar: user.photoURL || `https://picsum.photos/seed/${user.uid}/100/100`,
+            });
+          }
           
-          setCurrentUser({
-            ...userProfileDoc,
-            createdAt: createdAtDate,
-          });
-        } else {
-          setCurrentUser(null); 
-          console.error("Failed to get or create user profile for UID:", user.uid);
+          if (userProfileDoc) {
+            const createdAtDate =
+              userProfileDoc.createdAt instanceof Date
+                ? userProfileDoc.createdAt
+                : (userProfileDoc.createdAt as unknown as Timestamp)?.toDate?.() || new Date();
+            
+            setCurrentUser({
+              ...userProfileDoc,
+              createdAt: createdAtDate,
+            });
+          } else {
+            setCurrentUser(null); 
+            console.error("Failed to get or create user profile for UID:", user.uid);
+          }
+        } catch (error) {
+          console.error("Error processing auth state change:", error);
+          setCurrentUser(null);
+        } finally {
+          setLoading(false);
         }
-
       } else {
         setCurrentUser(null);
+        setLoading(false);
       }
-      setLoading(false);
     });
 
     return unsubscribe;
@@ -107,3 +112,4 @@ export function useAuth(): AuthContextType {
   }
   return context;
 }
+

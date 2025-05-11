@@ -1,4 +1,3 @@
-
 // src/components/layout/header.tsx
 "use client";
 
@@ -8,8 +7,8 @@ import Image from 'next/image';
 import { 
   Home, Menu, LogIn, UserPlus, Search,
   Gift, Dices, UsersRound, Trophy, Ticket, AlignJustify, HelpCircle, Settings2, Replace,
-  Banknote, CreditCard, Award, UserCog, Bell, WalletCards, Tv, ChevronDown, Star, ShieldQuestion, UserCircle, LogOut,
-  Gamepad2 as Gamepad2Icon // Renamed to avoid conflict with variable name
+  Banknote, CreditCard, Award, UserCog, Bell, WalletCards, Tv, ChevronDown, Star, ShieldQuestion, UserCircle as UserCircleIcon, LogOut as LogOutIcon, // Renamed UserCircle and LogOut
+  Gamepad2 as Gamepad2Icon 
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Logo } from './logo';
@@ -48,6 +47,10 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { DailySpinPopup } from '@/components/shared/daily-spin-popup'; // Import DailySpinPopup
+
+const LAST_VISIT_KEY = 'bajibuz_last_daily_spin_visit';
+const SHOW_WELCOME_SPIN_KEY = 'showWelcomeSpin';
 
 
 const casinoGameCategoriesData = [
@@ -120,7 +123,6 @@ const mainNavLinksData = [
   { href: '/promotions', labelEn: 'Promotions', labelBn: 'প্রমোশন', icon: Gift },
   { href: '/leaderboard', labelEn: 'Leaderboard', labelBn: 'লিডারবোর্ড', icon: Trophy },
   { href: '/vip-club', labelEn: 'VIP Club', labelBn: 'ভিআইপি ক্লাব', icon: Award },
-  // { href: '/support', labelEn: 'Help Center', labelBn: 'সহায়তা কেন্দ্র', icon: HelpCircle }, // Duplicate from below
 ];
 
 const topNavRightLinksData = [
@@ -132,7 +134,7 @@ const topNavRightLinksData = [
 
 
 const userActionLinksData = [
-    { href: '/dashboard', labelEn: 'Dashboard', labelBn: 'ড্যাশবোর্ড', icon: UserCircle },
+    { href: '/dashboard', labelEn: 'Dashboard', labelBn: 'ড্যাশবোর্ড', icon: UserCircleIcon },
     { href: '/wallet', labelEn: 'Wallet', labelBn: 'ওয়ালেট', icon: WalletCards},
     { href: '/dashboard?tab=profile', labelEn: 'Profile Settings', labelBn: 'প্রোফাইল সেটিংস', icon: Settings2 },
 ];
@@ -205,12 +207,29 @@ export function Header() {
   
   const [walletBalance, setWalletBalance] = useState("0.00"); 
   const notificationCount = 3; // Placeholder
+  const [showSpinPopup, setShowSpinPopup] = useState(false);
 
   useEffect(() => {
     if (currentUser) {
       setWalletBalance(currentUser.walletBalance.toLocaleString(language === 'bn' ? 'bn-BD' : 'en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+      
+      // Logic for automatic daily/welcome spin popup
+      if (typeof window !== 'undefined') {
+        const today = new Date().toDateString();
+        const lastVisit = localStorage.getItem(LAST_VISIT_KEY);
+        const shouldShowWelcomeSpin = localStorage.getItem(SHOW_WELCOME_SPIN_KEY) === 'true';
+
+        if (shouldShowWelcomeSpin) {
+          setShowSpinPopup(true);
+          localStorage.removeItem(SHOW_WELCOME_SPIN_KEY);
+          localStorage.setItem(LAST_VISIT_KEY, today);
+        } else if (lastVisit !== today) {
+          setShowSpinPopup(true);
+        }
+      }
     } else {
       setWalletBalance("0.00");
+      setShowSpinPopup(false); // Don't show spin popup if not logged in
     }
   }, [currentUser, language]);
 
@@ -226,288 +245,322 @@ export function Header() {
     await signOutUser();
     setIsMobileMenuOpen(false); 
   };
+  
+  const handleCloseSpinPopup = () => {
+    setShowSpinPopup(false);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(LAST_VISIT_KEY, new Date().toDateString());
+    }
+  };
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container mx-auto flex h-16 max-w-screen-2xl items-center px-2 md:px-4">
-        <div className="md:hidden flex items-center">
-          <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
-            <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" className="mr-1">
-                <Menu className="h-6 w-6" />
-                <span className="sr-only">{language === 'bn' ? 'মেনু টগল করুন' : 'Toggle menu'}</span>
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="left" className="w-[300px] bg-card p-0 flex flex-col">
-              <SheetHeader className="p-4 border-b border-border">
-                <SheetTitle asChild>
-                  <Link href="/" onClick={() => setIsMobileMenuOpen(false)}>
-                    <Logo className="h-7 w-auto" />
-                  </Link>
-                </SheetTitle>
-                <SheetClose className="absolute right-3 top-3.5 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none" />
-              </SheetHeader>
-              
-              <nav className="flex-grow overflow-y-auto p-4 space-y-1">
-                <Input placeholder={language === 'bn' ? 'গেম খুঁজুন...' : 'Search games...'} className="mb-3"/>
-                {mainNavLinks.map((item) => (
-                  <SheetClose key={item.label} asChild>
-                    <Link
-                      href={item.href}
-                      className="flex items-center space-x-3 rounded-md py-2.5 px-2 text-sm hover:bg-accent hover:text-accent-foreground"
-                      onClick={() => setIsMobileMenuOpen(false)}
-                    >
-                      <item.icon className="h-5 w-5 text-primary" />
-                      <span>{item.label}</span>
+    <>
+      <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="container mx-auto flex h-16 max-w-screen-2xl items-center px-2 md:px-4">
+          <div className="md:hidden flex items-center">
+            <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon" className="mr-1">
+                  <Menu className="h-6 w-6" />
+                  <span className="sr-only">{language === 'bn' ? 'মেনু টগল করুন' : 'Toggle menu'}</span>
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="left" className="w-[300px] bg-card p-0 flex flex-col">
+                <SheetHeader className="p-4 border-b border-border">
+                  <SheetTitle asChild>
+                    <Link href="/" onClick={() => setIsMobileMenuOpen(false)}>
+                      <Logo className="h-7 w-auto" />
                     </Link>
-                  </SheetClose>
-                ))}
-
-                <Accordion type="single" collapsible className="w-full">
-                  <AccordionItem value="casino-games" className="border-b-0">
-                    <AccordionTrigger className="flex items-center space-x-3 rounded-md py-2.5 px-2 text-sm hover:bg-accent hover:text-accent-foreground hover:no-underline">
-                      <Gamepad2Icon className="h-5 w-5 text-primary" />
-                       <span>{language === 'bn' ? 'ক্যাসিনো' : 'Casino'}</span>
-                    </AccordionTrigger>
-                    <AccordionContent className="pl-4">
-                      {casinoGameCategories.map(category => (
-                        <SheetClose key={category.title} asChild>
-                          <Link href={category.href} className="flex items-center space-x-2 py-2 px-2 text-sm rounded-md hover:bg-accent/50" onClick={() => setIsMobileMenuOpen(false)}>
-                            <category.icon className="h-4 w-4 text-muted-foreground" />
-                            <span>{category.title}</span>
-                          </Link>
-                        </SheetClose>
-                      ))}
-                    </AccordionContent>
-                  </AccordionItem>
-                  <AccordionItem value="live-games" className="border-b-0">
-                    <AccordionTrigger className="flex items-center space-x-3 rounded-md py-2.5 px-2 text-sm hover:bg-accent hover:text-accent-foreground hover:no-underline">
-                      <Tv className="h-5 w-5 text-primary" />
-                      <span>{language === 'bn' ? 'লাইভ গেম' : 'Live Games'}</span>
-                    </AccordionTrigger>
-                    <AccordionContent className="pl-4">
-                      {liveGameOptions.map(category => (
-                        <SheetClose key={category.title} asChild>
-                          <Link href={category.href} className="flex items-center space-x-2 py-2 px-2 text-sm rounded-md hover:bg-accent/50" onClick={() => setIsMobileMenuOpen(false)}>
-                            <category.icon className="h-4 w-4 text-muted-foreground" />
-                            <span>{category.title}</span>
-                          </Link>
-                        </SheetClose>
-                      ))}
-                    </AccordionContent>
-                  </AccordionItem>
-                </Accordion>
-
-                <Separator/>
-                 {topNavRightLinks.map((item) => {
-                    if (item.authRequired && !currentUser) return null;
-                    return (
+                  </SheetTitle>
+                  <SheetClose className="absolute right-3 top-3.5 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none" />
+                </SheetHeader>
+                
+                <nav className="flex-grow overflow-y-auto p-4 space-y-1">
+                  <Input placeholder={language === 'bn' ? 'গেম খুঁজুন...' : 'Search games...'} className="mb-3"/>
+                  {mainNavLinks.map((item) => (
                     <SheetClose key={item.label} asChild>
-                        <Link
+                      <Link
                         href={item.href}
                         className="flex items-center space-x-3 rounded-md py-2.5 px-2 text-sm hover:bg-accent hover:text-accent-foreground"
                         onClick={() => setIsMobileMenuOpen(false)}
-                        >
+                      >
                         <item.icon className="h-5 w-5 text-primary" />
                         <span>{item.label}</span>
-                        </Link>
+                      </Link>
                     </SheetClose>
-                    );
-                })}
+                  ))}
 
+                  {currentUser && (
+                    <SheetClose asChild>
+                      <Button
+                        variant="ghost"
+                        className="w-full flex items-center justify-start space-x-3 rounded-md py-2.5 px-2 text-sm hover:bg-accent hover:text-accent-foreground"
+                        onClick={() => { setIsMobileMenuOpen(false); setShowSpinPopup(true); }}
+                      >
+                        <Star className="h-5 w-5 text-primary" />
+                        <span>{language === 'bn' ? 'লাকি স্পিন' : 'Lucky Spin'}</span>
+                      </Button>
+                    </SheetClose>
+                  )}
 
-                {currentUser && (
-                  <>
-                    <Separator />
-                    <p className="pt-2 text-xs font-semibold uppercase text-muted-foreground px-2">
-                      {language === 'bn' ? 'আমার অ্যাকাউন্ট' : 'My Account'}
-                    </p>
-                    {userActionLinks.map((item) => (
-                       <SheetClose key={item.label} asChild>
-                          <Link href={item.href} className="flex items-center space-x-3 rounded-md py-2.5 px-2 text-sm hover:bg-accent hover:text-accent-foreground" onClick={() => setIsMobileMenuOpen(false)}>
-                             <item.icon className="h-5 w-5 text-primary" /><span>{item.label}</span>
+                  <Accordion type="single" collapsible className="w-full">
+                    <AccordionItem value="casino-games" className="border-b-0">
+                      <AccordionTrigger className="flex items-center space-x-3 rounded-md py-2.5 px-2 text-sm hover:bg-accent hover:text-accent-foreground hover:no-underline">
+                        <Gamepad2Icon className="h-5 w-5 text-primary" />
+                         <span>{language === 'bn' ? 'ক্যাসিনো' : 'Casino'}</span>
+                      </AccordionTrigger>
+                      <AccordionContent className="pl-4">
+                        {casinoGameCategories.map(category => (
+                          <SheetClose key={category.title} asChild>
+                            <Link href={category.href} className="flex items-center space-x-2 py-2 px-2 text-sm rounded-md hover:bg-accent/50" onClick={() => setIsMobileMenuOpen(false)}>
+                              <category.icon className="h-4 w-4 text-muted-foreground" />
+                              <span>{category.title}</span>
+                            </Link>
+                          </SheetClose>
+                        ))}
+                      </AccordionContent>
+                    </AccordionItem>
+                    <AccordionItem value="live-games" className="border-b-0">
+                      <AccordionTrigger className="flex items-center space-x-3 rounded-md py-2.5 px-2 text-sm hover:bg-accent hover:text-accent-foreground hover:no-underline">
+                        <Tv className="h-5 w-5 text-primary" />
+                        <span>{language === 'bn' ? 'লাইভ গেম' : 'Live Games'}</span>
+                      </AccordionTrigger>
+                      <AccordionContent className="pl-4">
+                        {liveGameOptions.map(category => (
+                          <SheetClose key={category.title} asChild>
+                            <Link href={category.href} className="flex items-center space-x-2 py-2 px-2 text-sm rounded-md hover:bg-accent/50" onClick={() => setIsMobileMenuOpen(false)}>
+                              <category.icon className="h-4 w-4 text-muted-foreground" />
+                              <span>{category.title}</span>
+                            </Link>
+                          </SheetClose>
+                        ))}
+                      </AccordionContent>
+                    </AccordionItem>
+                  </Accordion>
+
+                  <Separator/>
+                   {topNavRightLinks.map((item) => {
+                      if (item.authRequired && !currentUser) return null;
+                      return (
+                      <SheetClose key={item.label} asChild>
+                          <Link
+                          href={item.href}
+                          className="flex items-center space-x-3 rounded-md py-2.5 px-2 text-sm hover:bg-accent hover:text-accent-foreground"
+                          onClick={() => setIsMobileMenuOpen(false)}
+                          >
+                          <item.icon className="h-5 w-5 text-primary" />
+                          <span>{item.label}</span>
                           </Link>
-                       </SheetClose>
-                    ))}
-                  </>
-                )}
-              </nav>
+                      </SheetClose>
+                      );
+                  })}
 
-              <div className="border-t border-border p-4 space-y-2.5">
-                {currentUser ? (
-                  <Button variant="outline" className="w-full" onClick={handleSignOut}>
-                    <LogOut className="mr-2 h-4 w-4" /> {language === 'bn' ? 'লগআউট' : 'Logout'}
-                  </Button>
-                ) : (
-                  <>
-                    <Button variant="outline" className="w-full" asChild><Link href="/login" onClick={() => setIsMobileMenuOpen(false)}><LogIn className="mr-2 h-4 w-4" /> {language === 'bn' ? 'লগইন' : 'Login'}</Link></Button>
-                    <Button className="w-full" asChild><Link href="/signup" onClick={() => setIsMobileMenuOpen(false)}><UserPlus className="mr-2 h-4 w-4" />{language === 'bn' ? 'সাইন আপ' : 'Sign Up'}</Link></Button>
-                  </>
-                )}
-              </div>
-            </SheetContent>
-          </Sheet>
-        </div>
 
-        <Link href="/" className="flex items-center space-x-2 mr-2 md:mr-4" aria-label="Bajibuz Home">
-          <Logo className="h-8 w-auto" />
-        </Link>
+                  {currentUser && (
+                    <>
+                      <Separator />
+                      <p className="pt-2 text-xs font-semibold uppercase text-muted-foreground px-2">
+                        {language === 'bn' ? 'আমার অ্যাকাউন্ট' : 'My Account'}
+                      </p>
+                      {userActionLinks.map((item) => (
+                         <SheetClose key={item.label} asChild>
+                            <Link href={item.href} className="flex items-center space-x-3 rounded-md py-2.5 px-2 text-sm hover:bg-accent hover:text-accent-foreground" onClick={() => setIsMobileMenuOpen(false)}>
+                               <item.icon className="h-5 w-5 text-primary" /><span>{item.label}</span>
+                            </Link>
+                         </SheetClose>
+                      ))}
+                    </>
+                  )}
+                </nav>
 
-        <NavigationMenu className="hidden lg:flex flex-1">
-          <NavigationMenuList>
-            {mainNavLinks.slice(0,1).map((item) => ( // Home
-                 <NavigationMenuItem key={item.label}>
-                    <Link href={item.href} legacyBehavior passHref>
-                        <NavigationMenuLink className={navigationMenuTriggerStyle()}>
-                        {item.icon && <item.icon className="mr-1.5 h-4 w-4" />} {item.label}
-                        </NavigationMenuLink>
-                    </Link>
-                 </NavigationMenuItem>
-            ))}
-            <NavigationMenuItem>
-              <NavigationMenuTrigger><Gamepad2Icon className="mr-1.5 h-4 w-4" /> {language === 'bn' ? 'ক্যাসিনো' : 'Casino'}</NavigationMenuTrigger>
-              <NavigationMenuContent>
-                <div className="grid p-4 md:w-[600px] lg:w-[750px] gap-3 grid-cols-3">
-                  {casinoGameCategories.map((category) => (
-                    <div key={category.title} className="col-span-1 flex flex-col">
-                      <ListItem href={category.href} title={category.title} icon={category.icon}>
-                        {category.description}
-                      </ListItem>
-                      <div className="grid grid-cols-2 gap-1 mt-2">
-                        {category.games?.slice(0,2).map(game => (
-                           <GameThumbnailItem key={game.name} name={game.name} thumbnail={game.thumbnail} dataAiHint={game.dataAiHint} href={game.href} />
-                        ))}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                 <div className="p-3 text-center bg-muted/50">
-                    <Link href="/games" className="text-sm font-medium text-primary hover:underline">
-                      {language === 'bn' ? 'সকল ক্যাসিনো গেম দেখুন' : 'View All Casino Games'} <ChevronDown className="inline h-4 w-4 rotate-[-90deg]"/>
-                    </Link>
-                </div>
-              </NavigationMenuContent>
-            </NavigationMenuItem>
-
-            <NavigationMenuItem>
-              <NavigationMenuTrigger><Tv className="mr-1.5 h-4 w-4" /> {language === 'bn' ? 'লাইভ গেম' : 'Live Games'}</NavigationMenuTrigger>
-              <NavigationMenuContent>
-                 <div className="grid p-4 md:w-[500px] lg:w-[650px] gap-3 grid-cols-2">
-                  {liveGameOptions.map((category) => (
-                     <div key={category.title} className="col-span-1 flex flex-col">
-                      <ListItem href={category.href} title={category.title} icon={category.icon}>
-                        {category.description}
-                      </ListItem>
-                      <div className="grid grid-cols-2 gap-1 mt-2">
-                        {category.games?.slice(0,2).map(game => ( 
-                           <GameThumbnailItem key={game.name} name={game.name} thumbnail={game.thumbnail} dataAiHint={game.dataAiHint} href={game.href} />
-                        ))}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                <div className="p-3 text-center bg-muted/50">
-                    <Link href="/games?category=live-casino" className="text-sm font-medium text-primary hover:underline">
-                      {language === 'bn' ? 'সকল লাইভ গেম দেখুন' : 'View All Live Games'} <ChevronDown className="inline h-4 w-4 rotate-[-90deg]"/>
-                    </Link>
-                </div>
-              </NavigationMenuContent>
-            </NavigationMenuItem>
-
-            {mainNavLinks.slice(1).map((item) => (
-              <NavigationMenuItem key={item.label}>
-                 <Link href={item.href} legacyBehavior passHref>
-                    <NavigationMenuLink className={navigationMenuTriggerStyle()}>
-                       {item.icon && <item.icon className="mr-1.5 h-4 w-4" />} {item.label}
-                    </NavigationMenuLink>
-                 </Link>
-              </NavigationMenuItem>
-            ))}
-          </NavigationMenuList>
-        </NavigationMenu>
-
-        <div className="flex items-center space-x-1 md:space-x-2 ml-auto">
-            {topNavRightLinks.map((item) => {
-                if (item.authRequired && !currentUser) return null;
-                if (item.mobileOnly && typeof window !== 'undefined' && window.innerWidth >= 768) return null; // Hide on desktop if mobileOnly
-                return (
-                    <Button variant="ghost" size="sm" className="hidden md:inline-flex text-xs px-2.5 py-1.5" asChild key={item.label}>
-                        <Link href={item.href}><item.icon className="mr-1 h-3.5 w-3.5" /> {item.label}</Link>
+                <div className="border-t border-border p-4 space-y-2.5">
+                  {currentUser ? (
+                    <Button variant="outline" className="w-full" onClick={handleSignOut}>
+                      <LogOutIcon className="mr-2 h-4 w-4" /> {language === 'bn' ? 'লগআউট' : 'Logout'}
                     </Button>
-                );
-            })}
+                  ) : (
+                    <>
+                      <Button variant="outline" className="w-full" asChild><Link href="/login" onClick={() => setIsMobileMenuOpen(false)}><LogIn className="mr-2 h-4 w-4" /> {language === 'bn' ? 'লগইন' : 'Login'}</Link></Button>
+                      <Button className="w-full" asChild><Link href="/signup" onClick={() => setIsMobileMenuOpen(false)}><UserPlus className="mr-2 h-4 w-4" />{language === 'bn' ? 'সাইন আপ' : 'Sign Up'}</Link></Button>
+                    </>
+                  )}
+                </div>
+              </SheetContent>
+            </Sheet>
+          </div>
 
-          {currentUser && (
-            <>
-              <Link href="/wallet" className="hidden md:flex items-center p-2 hover:bg-accent rounded-md" aria-label="Wallet">
-                <WalletCards className="h-5 w-5 text-primary" />
-                <span className="ml-1.5 text-xs font-medium text-muted-foreground">৳{walletBalance}</span>
-              </Link>
-            </>
-          )}
+          <Link href="/" className="flex items-center space-x-2 mr-2 md:mr-4" aria-label="Bajibuz Home">
+            <Logo className="h-8 w-auto" />
+          </Link>
 
-          <Button variant="ghost" size="icon" className="relative" aria-label="Notifications">
-            <Bell className="h-5 w-5" />
-            {notificationCount > 0 && (
-              <span className="absolute top-1.5 right-1.5 flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
-              </span>
-            )}
-          </Button>
-          
-          <ThemeToggle />
-          <LanguageToggle />
-          
-          {!loading && currentUser ? (
-             <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="relative h-9 w-9 rounded-full">
-                  <Avatar className="h-8 w-8">
-                    <AvatarImage src={currentUser.avatar || `https://picsum.photos/seed/${currentUser.uid}/32/32`} alt={currentUser.name} />
-                    <AvatarFallback>{currentUser.name?.substring(0,1).toUpperCase()}</AvatarFallback>
-                  </Avatar>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-56" align="end" forceMount>
-                <DropdownMenuLabel className="font-normal">
-                  <div className="flex flex-col space-y-1">
-                    <p className="text-sm font-medium leading-none">{currentUser.name}</p>
-                    <p className="text-xs leading-none text-muted-foreground">
-                      {currentUser.email}
-                    </p>
+          <NavigationMenu className="hidden lg:flex flex-1">
+            <NavigationMenuList>
+              {mainNavLinks.slice(0,1).map((item) => ( 
+                   <NavigationMenuItem key={item.label}>
+                      <Link href={item.href} legacyBehavior passHref>
+                          <NavigationMenuLink className={navigationMenuTriggerStyle()}>
+                          {item.icon && <item.icon className="mr-1.5 h-4 w-4" />} {item.label}
+                          </NavigationMenuLink>
+                      </Link>
+                   </NavigationMenuItem>
+              ))}
+              <NavigationMenuItem>
+                <NavigationMenuTrigger><Gamepad2Icon className="mr-1.5 h-4 w-4" /> {language === 'bn' ? 'ক্যাসিনো' : 'Casino'}</NavigationMenuTrigger>
+                <NavigationMenuContent>
+                  <div className="grid p-4 md:w-[600px] lg:w-[750px] gap-3 grid-cols-3">
+                    {casinoGameCategories.map((category) => (
+                      <div key={category.title} className="col-span-1 flex flex-col">
+                        <ListItem href={category.href} title={category.title} icon={category.icon}>
+                          {category.description}
+                        </ListItem>
+                        <div className="grid grid-cols-2 gap-1 mt-2">
+                          {category.games?.slice(0,2).map(game => (
+                             <GameThumbnailItem key={game.name} name={game.name} thumbnail={game.thumbnail} dataAiHint={game.dataAiHint} href={game.href} />
+                          ))}
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                </DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                 {userActionLinks.map(item => (
-                    <DropdownMenuItem key={item.href} asChild>
-                        <Link href={item.href}>
-                            <item.icon className="mr-2 h-4 w-4" />
-                            <span>{item.label}</span>
-                        </Link>
-                    </DropdownMenuItem>
-                 ))}
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleSignOut}>
-                  <LogOut className="mr-2 h-4 w-4" />
-                  <span>{language === 'bn' ? 'লগআউট' : 'Logout'}</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          ) : !loading && !currentUser ? (
-            <div className="hidden md:flex items-center space-x-2">
-              <Button variant="ghost" size="sm" asChild>
-                <Link href="/login"><LogIn className="mr-1.5 h-4 w-4" /> {language === 'bn' ? 'লগইন' : 'Login'}</Link>
-              </Button>
-              <Button size="sm" asChild>
-                <Link href="/signup"><UserPlus className="mr-1.5 h-4 w-4" />{language === 'bn' ? 'সাইন আপ' : 'Sign Up'}</Link>
-              </Button>
-            </div>
-          ): ( // Loading state
-            <div className="h-9 w-9 rounded-full bg-muted animate-pulse"></div>
-          )}
+                   <div className="p-3 text-center bg-muted/50">
+                      <Link href="/games" className="text-sm font-medium text-primary hover:underline">
+                        {language === 'bn' ? 'সকল ক্যাসিনো গেম দেখুন' : 'View All Casino Games'} <ChevronDown className="inline h-4 w-4 rotate-[-90deg]"/>
+                      </Link>
+                  </div>
+                </NavigationMenuContent>
+              </NavigationMenuItem>
+
+              <NavigationMenuItem>
+                <NavigationMenuTrigger><Tv className="mr-1.5 h-4 w-4" /> {language === 'bn' ? 'লাইভ গেম' : 'Live Games'}</NavigationMenuTrigger>
+                <NavigationMenuContent>
+                   <div className="grid p-4 md:w-[500px] lg:w-[650px] gap-3 grid-cols-2">
+                    {liveGameOptions.map((category) => (
+                       <div key={category.title} className="col-span-1 flex flex-col">
+                        <ListItem href={category.href} title={category.title} icon={category.icon}>
+                          {category.description}
+                        </ListItem>
+                        <div className="grid grid-cols-2 gap-1 mt-2">
+                          {category.games?.slice(0,2).map(game => ( 
+                             <GameThumbnailItem key={game.name} name={game.name} thumbnail={game.thumbnail} dataAiHint={game.dataAiHint} href={game.href} />
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="p-3 text-center bg-muted/50">
+                      <Link href="/games?category=live-casino" className="text-sm font-medium text-primary hover:underline">
+                        {language === 'bn' ? 'সকল লাইভ গেম দেখুন' : 'View All Live Games'} <ChevronDown className="inline h-4 w-4 rotate-[-90deg]"/>
+                      </Link>
+                  </div>
+                </NavigationMenuContent>
+              </NavigationMenuItem>
+
+              {mainNavLinks.slice(1).map((item) => (
+                <NavigationMenuItem key={item.label}>
+                   <Link href={item.href} legacyBehavior passHref>
+                      <NavigationMenuLink className={navigationMenuTriggerStyle()}>
+                         {item.icon && <item.icon className="mr-1.5 h-4 w-4" />} {item.label}
+                      </NavigationMenuLink>
+                   </Link>
+                </NavigationMenuItem>
+              ))}
+            </NavigationMenuList>
+          </NavigationMenu>
+
+          <div className="flex items-center space-x-1 md:space-x-2 ml-auto">
+              {currentUser && (
+                 <Button
+                    variant="ghost"
+                    size="sm"
+                    className="hidden md:inline-flex text-xs px-2.5 py-1.5"
+                    onClick={() => setShowSpinPopup(true)}
+                  >
+                    <Star className="mr-1 h-3.5 w-3.5 text-yellow-400" /> {language === 'bn' ? 'লাকি স্পিন' : 'Lucky Spin'}
+                  </Button>
+              )}
+              {topNavRightLinks.map((item) => {
+                  if (item.authRequired && !currentUser) return null;
+                  if (item.mobileOnly && typeof window !== 'undefined' && window.innerWidth >= 768) return null; 
+                  return (
+                      <Button variant="ghost" size="sm" className="hidden md:inline-flex text-xs px-2.5 py-1.5" asChild key={item.label}>
+                          <Link href={item.href}><item.icon className="mr-1 h-3.5 w-3.5" /> {item.label}</Link>
+                      </Button>
+                  );
+              })}
+
+            {currentUser && (
+              <>
+                <Link href="/wallet" className="hidden md:flex items-center p-2 hover:bg-accent rounded-md" aria-label="Wallet">
+                  <WalletCards className="h-5 w-5 text-primary" />
+                  <span className="ml-1.5 text-xs font-medium text-muted-foreground">৳{walletBalance}</span>
+                </Link>
+              </>
+            )}
+
+            <Button variant="ghost" size="icon" className="relative" aria-label="Notifications">
+              <Bell className="h-5 w-5" />
+              {notificationCount > 0 && (
+                <span className="absolute top-1.5 right-1.5 flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
+                </span>
+              )}
+            </Button>
+            
+            <ThemeToggle />
+            <LanguageToggle />
+            
+            {!loading && currentUser ? (
+               <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="relative h-9 w-9 rounded-full">
+                    <Avatar className="h-8 w-8">
+                      <AvatarImage src={currentUser.avatar || `https://picsum.photos/seed/${currentUser.uid}/32/32`} alt={currentUser.name || 'User'} />
+                      <AvatarFallback>{currentUser.name?.substring(0,1).toUpperCase() || 'U'}</AvatarFallback>
+                    </Avatar>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-56" align="end" forceMount>
+                  <DropdownMenuLabel className="font-normal">
+                    <div className="flex flex-col space-y-1">
+                      <p className="text-sm font-medium leading-none">{currentUser.name}</p>
+                      <p className="text-xs leading-none text-muted-foreground">
+                        {currentUser.email}
+                      </p>
+                    </div>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                   {userActionLinks.map(item => (
+                      <DropdownMenuItem key={item.href} asChild>
+                          <Link href={item.href}>
+                              <item.icon className="mr-2 h-4 w-4" />
+                              <span>{item.label}</span>
+                          </Link>
+                      </DropdownMenuItem>
+                   ))}
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleSignOut}>
+                    <LogOutIcon className="mr-2 h-4 w-4" />
+                    <span>{language === 'bn' ? 'লগআউট' : 'Logout'}</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : !loading && !currentUser ? (
+              <div className="hidden md:flex items-center space-x-2">
+                <Button variant="ghost" size="sm" asChild>
+                  <Link href="/login"><LogIn className="mr-1.5 h-4 w-4" /> {language === 'bn' ? 'লগইন' : 'Login'}</Link>
+                </Button>
+                <Button size="sm" asChild>
+                  <Link href="/signup"><UserPlus className="mr-1.5 h-4 w-4" />{language === 'bn' ? 'সাইন আপ' : 'Sign Up'}</Link>
+                </Button>
+              </div>
+            ): ( 
+              <div className="h-9 w-9 rounded-full bg-muted animate-pulse"></div>
+            )}
+          </div>
         </div>
-      </div>
-    </header>
+      </header>
+      {currentUser && <DailySpinPopup isOpen={showSpinPopup} onClose={handleCloseSpinPopup} />}
+    </>
   );
 }
+
