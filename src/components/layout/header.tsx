@@ -8,7 +8,7 @@ import {
   Home, Menu, LogIn, UserPlus, Search,
   Gift, Dices, UsersRound, Trophy, Ticket, AlignJustify, HelpCircle, Settings2, Replace,
   Banknote, CreditCard, Award, UserCog, Bell, WalletCards, Tv, ChevronDown, Star, ShieldQuestion, UserCircle as UserCircleIcon, LogOut as LogOutIcon,
-  Gamepad2 as Gamepad2Icon, History // Added History
+  Gamepad2 as Gamepad2Icon, History, Wallet as WalletIcon, Landmark // Added WalletIcon alias and Landmark
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Logo } from './logo';
@@ -49,7 +49,6 @@ import {
   DropdownMenuGroup,
 } from "@/components/ui/dropdown-menu";
 import { DailySpinPopup } from '@/components/shared/daily-spin-popup';
-import { Wallet } from 'lucide-react'; // Explicitly import Wallet icon
 
 const LAST_VISIT_KEY = 'bajibuz_last_daily_spin_visit';
 const SHOW_WELCOME_SPIN_KEY = 'showWelcomeSpin';
@@ -127,16 +126,14 @@ const mainNavLinksData = [
   { key: 'vip-club', href: '/vip-club', labelEn: 'VIP Club', labelBn: 'ভিআইপি ক্লাব', icon: Award },
 ];
 
-// Simplified: Wallet actions are now in a dedicated dropdown.
 const topNavRightLinksData = [
     { key: 'kyc', href: '/dashboard?tab=profile', labelEn: 'KYC / Profile', labelBn: 'কেওয়াইসি / প্রোফাইল', icon: UserCog, authRequired: true, mobileOnly: false },
     { key: 'help', href: '/support', labelEn: 'Help Center', labelBn: 'সহায়তা কেন্দ্র', icon: ShieldQuestion, authRequired: false, mobileOnly: false },
 ];
 
-// userActionLinksData defines the items in the profile dropdown.
 const userActionLinksData = [
     { key: 'dashboard', href: '/dashboard', labelEn: 'Dashboard', labelBn: 'ড্যাশবোর্ড', icon: UserCircleIcon },
-    { key: 'wallet', href: '/wallet', labelEn: 'Wallet Page', labelBn: 'ওয়ালেট পৃষ্ঠা', icon: WalletCards}, // Renamed for clarity vs. wallet dropdown
+    { key: 'wallet', href: '/wallet', labelEn: 'Wallet Page', labelBn: 'ওয়ালেট পৃষ্ঠা', icon: WalletCards},
     { 
       key: 'profile-settings',
       href: '/dashboard?tab=profile', 
@@ -523,7 +520,6 @@ export function Header() {
                   </Button>
               )}
               
-              {/* Wallet Dropdown */}
               {!loading && currentUser && (
                 <DropdownMenu open={isWalletMenuOpen} onOpenChange={setIsWalletMenuOpen}>
                   <DropdownMenuTrigger asChild>
@@ -534,13 +530,13 @@ export function Header() {
                       onMouseLeave={handleWalletMenuClose}
                       onClick={() => setIsWalletMenuOpen(prev => !prev)}
                     >
-                      <Wallet className="mr-1.5 h-4 w-4 text-primary" />
+                      <WalletIcon className="mr-1.5 h-4 w-4 text-primary" />
                       <span className="font-medium">৳{walletBalanceString}</span>
                       <ChevronDown className="ml-1 h-3 w-3 text-muted-foreground"/>
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent 
-                    className="w-56" 
+                    className="w-64" // Increased width for deposit methods
                     align="end" 
                     forceMount
                     onMouseEnter={handleWalletMenuContentEnter}
@@ -553,21 +549,50 @@ export function Header() {
                       </div>
                     </DropdownMenuLabel>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem asChild onClick={() => setIsWalletMenuOpen(false)}>
-                      <Link href="/wallet" className="cursor-pointer"> {/* Or /dashboard?tab=wallet */}
+                     <DropdownMenuItem asChild onClick={() => setIsWalletMenuOpen(false)}>
+                      <Link href="/wallet?action=deposit" className="cursor-pointer w-full">
                         <Banknote className="mr-2 h-4 w-4" />
-                        <span>{language === 'bn' ? 'জমা করুন' : 'Deposit'}</span>
+                        <span>{language === 'bn' ? 'টাকা জমা দিন' : 'Deposit Funds'}</span>
                       </Link>
                     </DropdownMenuItem>
+                    
+                    <DropdownMenuGroup>
+                      <DropdownMenuLabel className="px-2 py-1.5 text-xs font-normal text-muted-foreground">
+                        {language === 'bn' ? 'ডিপোজিট মাধ্যম:' : 'Deposit Methods:'}
+                      </DropdownMenuLabel>
+                      <DropdownMenuItem asChild onClick={() => setIsWalletMenuOpen(false)}>
+                        <Link href="/wallet?method=bkash&action=deposit" className="cursor-pointer w-full">
+                          <span className="ml-2 font-medium text-pink-600">bKash</span>
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem asChild onClick={() => setIsWalletMenuOpen(false)}>
+                        <Link href="/wallet?method=nagad&action=deposit" className="cursor-pointer w-full">
+                          <span className="ml-2 font-medium text-orange-500">Nagad</span>
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem asChild onClick={() => setIsWalletMenuOpen(false)}>
+                        <Link href="/wallet?method=rocket&action=deposit" className="cursor-pointer w-full">
+                           <span className="ml-2 font-medium text-purple-600">Rocket</span>
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem asChild onClick={() => setIsWalletMenuOpen(false)}>
+                        <Link href="/wallet?method=bank&action=deposit" className="cursor-pointer w-full">
+                          <Landmark className="mr-2 h-4 w-4" />
+                          <span>{language === 'bn' ? 'ব্যাংক ট্রান্সফার' : 'Bank Transfer'}</span>
+                        </Link>
+                      </DropdownMenuItem>
+                    </DropdownMenuGroup>
+                    
+                    <DropdownMenuSeparator />
                     <DropdownMenuItem asChild onClick={() => setIsWalletMenuOpen(false)}>
-                       <Link href="/wallet" className="cursor-pointer"> {/* Or /dashboard?tab=wallet */}
+                       <Link href="/wallet?action=withdraw" className="cursor-pointer w-full">
                         <CreditCard className="mr-2 h-4 w-4" />
-                        <span>{language === 'bn' ? 'উত্তোলন করুন' : 'Withdraw'}</span>
+                        <span>{language === 'bn' ? 'টাকা উত্তোলন করুন' : 'Withdraw Funds'}</span>
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem asChild onClick={() => setIsWalletMenuOpen(false)}>
-                      <Link href="/dashboard?tab=history" className="cursor-pointer">
+                      <Link href="/dashboard?tab=history" className="cursor-pointer w-full">
                         <History className="mr-2 h-4 w-4" />
                         <span>{language === 'bn' ? 'লেনদেনের ইতিহাস' : 'Transaction History'}</span>
                       </Link>
@@ -577,9 +602,9 @@ export function Header() {
               )}
 
 
-              {/* Other Links (KYC, Help) from topNavRightLinksData */}
               {topNavRightLinks.map((item) => {
                   if (item.authRequired && !currentUser) return null;
+                  if (item.mobileOnly) return null; // Don't show mobileOnly links on desktop
                   return (
                       <Button variant="ghost" size="sm" className="hidden md:inline-flex text-xs px-2.5 py-1.5" asChild key={item.key}>
                           <Link href={item.href}><item.icon className="mr-1 h-3.5 w-3.5" /> {item.label}</Link>
@@ -667,4 +692,3 @@ export function Header() {
     </>
   );
 }
-
