@@ -8,7 +8,7 @@ import {
   Home, Menu, LogIn, UserPlus, Search,
   Gift, Dices, UsersRound, Trophy, Ticket, AlignJustify, HelpCircle, Settings2, Replace,
   Banknote, CreditCard, Award, UserCog, Bell, WalletCards, Tv, ChevronDown, Star, ShieldQuestion, UserCircle as UserCircleIcon, LogOut as LogOutIcon,
-  Gamepad2 as Gamepad2Icon, History, Wallet as WalletIcon, Landmark // Added WalletIcon alias and Landmark
+  Gamepad2 as Gamepad2Icon, History, Wallet as WalletIcon, Landmark, ArrowUpFromLine // Added WalletCards, ArrowUpFromLine
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Logo } from './logo';
@@ -219,6 +219,9 @@ export function Header() {
   const [isWalletMenuOpen, setIsWalletMenuOpen] = useState(false);
   const walletMenuTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
+  const [isDedicatedWalletMenuOpen, setIsDedicatedWalletMenuOpen] = useState(false);
+  const dedicatedWalletMenuTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
 
   useEffect(() => {
     if (currentUser) {
@@ -256,6 +259,7 @@ export function Header() {
     setIsMobileMenuOpen(false); 
     setIsProfileMenuOpen(false); 
     setIsWalletMenuOpen(false);
+    setIsDedicatedWalletMenuOpen(false);
   };
   
   const handleCloseSpinPopup = () => {
@@ -293,6 +297,20 @@ export function Header() {
     walletMenuTimeoutRef.current = setTimeout(() => setIsWalletMenuOpen(false), 150);
   };
 
+  const handleDedicatedWalletMenuOpen = () => {
+    if (dedicatedWalletMenuTimeoutRef.current) clearTimeout(dedicatedWalletMenuTimeoutRef.current);
+    setIsDedicatedWalletMenuOpen(true);
+  };
+  const handleDedicatedWalletMenuClose = () => {
+    dedicatedWalletMenuTimeoutRef.current = setTimeout(() => setIsDedicatedWalletMenuOpen(false), 150);
+  };
+  const handleDedicatedWalletMenuContentEnter = () => {
+    if (dedicatedWalletMenuTimeoutRef.current) clearTimeout(dedicatedWalletMenuTimeoutRef.current);
+  };
+  const handleDedicatedWalletMenuContentLeave = () => {
+    dedicatedWalletMenuTimeoutRef.current = setTimeout(() => setIsDedicatedWalletMenuOpen(false), 150);
+  };
+
 
   return (
     <>
@@ -317,7 +335,7 @@ export function Header() {
                 </SheetHeader>
                 
                 <nav className="flex-grow overflow-y-auto p-4 space-y-1">
-                  <Input placeholder={language === 'bn' ? 'গেম খুঁজুন...' : 'Search games...'} className="mb-3"/>
+                  <Input placeholder={language === 'bn' ? 'গেম খুঁজুন...' : 'Search games...'} className="mb-3 bg-background"/>
                   {mainNavLinks.map((item) => (
                     <SheetClose key={item.key} asChild>
                       <Link
@@ -440,30 +458,30 @@ export function Header() {
               {mainNavLinks.slice(0,1).map((item) => ( 
                    <NavigationMenuItem key={item.key}>
                       <Link href={item.href} legacyBehavior passHref>
-                          <NavigationMenuLink className={navigationMenuTriggerStyle()}>
+                          <NavigationMenuLink className={cn(navigationMenuTriggerStyle(), "hover:bg-accent hover:text-accent-foreground")}>
                           {item.icon && <item.icon className="mr-1.5 h-4 w-4" />} {item.label}
                           </NavigationMenuLink>
                       </Link>
                    </NavigationMenuItem>
               ))}
               <NavigationMenuItem>
-                <NavigationMenuTrigger><Gamepad2Icon className="mr-1.5 h-4 w-4" /> {language === 'bn' ? 'ক্যাসিনো' : 'Casino'}</NavigationMenuTrigger>
+                <NavigationMenuTrigger className="hover:bg-accent hover:text-accent-foreground"><Gamepad2Icon className="mr-1.5 h-4 w-4" /> {language === 'bn' ? 'ক্যাসিনো' : 'Casino'}</NavigationMenuTrigger>
                 <NavigationMenuContent>
-                  <div className="grid p-4 md:w-[600px] lg:w-[750px] gap-3 grid-cols-3">
+                  <div className="grid p-4 md:w-[600px] lg:w-[750px] gap-3 grid-cols-3 bg-card border-border shadow-lg">
                     {casinoGameCategories.map((category) => (
                       <div key={category.key} className="col-span-1 flex flex-col">
-                        <ListItem href={category.href} title={category.title} icon={category.icon}>
+                        <ListItem href={category.href} title={category.title} icon={category.icon} className="hover:bg-accent hover:text-accent-foreground">
                           {category.description}
                         </ListItem>
                         <div className="grid grid-cols-2 gap-1 mt-2">
                           {category.games?.slice(0,2).map(game => (
-                             <GameThumbnailItem key={game.nameEn} name={game.name} thumbnail={game.thumbnail} dataAiHint={game.dataAiHint} href={game.href} />
+                             <GameThumbnailItem key={game.nameEn} name={game.name} thumbnail={game.thumbnail} dataAiHint={game.dataAiHint} href={game.href} className="hover:bg-accent hover:text-accent-foreground"/>
                           ))}
                         </div>
                       </div>
                     ))}
                   </div>
-                   <div className="p-3 text-center bg-muted/50">
+                   <div className="p-3 text-center bg-muted/30">
                       <Link href="/games" className="text-sm font-medium text-primary hover:underline">
                         {language === 'bn' ? 'সকল ক্যাসিনো গেম দেখুন' : 'View All Casino Games'} <ChevronDown className="inline h-4 w-4 rotate-[-90deg]"/>
                       </Link>
@@ -472,23 +490,23 @@ export function Header() {
               </NavigationMenuItem>
 
               <NavigationMenuItem>
-                <NavigationMenuTrigger><Tv className="mr-1.5 h-4 w-4" /> {language === 'bn' ? 'লাইভ গেম' : 'Live Games'}</NavigationMenuTrigger>
+                <NavigationMenuTrigger className="hover:bg-accent hover:text-accent-foreground"><Tv className="mr-1.5 h-4 w-4" /> {language === 'bn' ? 'লাইভ গেম' : 'Live Games'}</NavigationMenuTrigger>
                 <NavigationMenuContent>
-                   <div className="grid p-4 md:w-[500px] lg:w-[650px] gap-3 grid-cols-2">
+                   <div className="grid p-4 md:w-[500px] lg:w-[650px] gap-3 grid-cols-2 bg-card border-border shadow-lg">
                     {liveGameOptions.map((category) => (
                        <div key={category.key} className="col-span-1 flex flex-col">
-                        <ListItem href={category.href} title={category.title} icon={category.icon}>
+                        <ListItem href={category.href} title={category.title} icon={category.icon} className="hover:bg-accent hover:text-accent-foreground">
                           {category.description}
                         </ListItem>
                         <div className="grid grid-cols-2 gap-1 mt-2">
                           {category.games?.slice(0,2).map(game => ( 
-                             <GameThumbnailItem key={game.nameEn} name={game.name} thumbnail={game.thumbnail} dataAiHint={game.dataAiHint} href={game.href} />
+                             <GameThumbnailItem key={game.nameEn} name={game.name} thumbnail={game.thumbnail} dataAiHint={game.dataAiHint} href={game.href} className="hover:bg-accent hover:text-accent-foreground" />
                           ))}
                         </div>
                       </div>
                     ))}
                   </div>
-                  <div className="p-3 text-center bg-muted/50">
+                  <div className="p-3 text-center bg-muted/30">
                       <Link href="/games?category=live-casino" className="text-sm font-medium text-primary hover:underline">
                         {language === 'bn' ? 'সকল লাইভ গেম দেখুন' : 'View All Live Games'} <ChevronDown className="inline h-4 w-4 rotate-[-90deg]"/>
                       </Link>
@@ -499,7 +517,7 @@ export function Header() {
               {mainNavLinks.slice(1).map((item) => (
                 <NavigationMenuItem key={item.key}>
                    <Link href={item.href} legacyBehavior passHref>
-                      <NavigationMenuLink className={navigationMenuTriggerStyle()}>
+                      <NavigationMenuLink className={cn(navigationMenuTriggerStyle(), "hover:bg-accent hover:text-accent-foreground")}>
                          {item.icon && <item.icon className="mr-1.5 h-4 w-4" />} {item.label}
                       </NavigationMenuLink>
                    </Link>
@@ -513,7 +531,7 @@ export function Header() {
                  <Button
                     variant="ghost"
                     size="sm"
-                    className="hidden md:inline-flex text-xs px-2.5 py-1.5"
+                    className="hidden md:inline-flex text-xs px-2.5 py-1.5 hover:bg-accent hover:text-accent-foreground"
                     onClick={() => setShowSpinPopup(true)}
                   >
                     <Star className="mr-1 h-3.5 w-3.5 text-yellow-400" /> {language === 'bn' ? 'লাকি স্পিন' : 'Lucky Spin'}
@@ -525,7 +543,7 @@ export function Header() {
                   <DropdownMenuTrigger asChild>
                     <Button 
                       variant="ghost" 
-                      className="hidden md:flex items-center text-xs px-2.5 py-1.5 h-auto rounded-md hover:bg-accent"
+                      className="hidden md:flex items-center text-xs px-2.5 py-1.5 h-auto rounded-md hover:bg-accent hover:text-accent-foreground"
                       onMouseEnter={handleWalletMenuOpen}
                       onMouseLeave={handleWalletMenuClose}
                       onClick={() => setIsWalletMenuOpen(prev => !prev)}
@@ -536,21 +554,21 @@ export function Header() {
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent 
-                    className="w-64" // Increased width for deposit methods
+                    className="w-64 bg-card border-border shadow-lg" 
                     align="end" 
                     forceMount
                     onMouseEnter={handleWalletMenuContentEnter}
                     onMouseLeave={handleWalletMenuContentLeave}
                   >
-                    <DropdownMenuLabel className="font-normal">
+                    <DropdownMenuLabel className="font-normal text-foreground">
                       <div className="flex flex-col space-y-1">
                         <p className="text-xs text-muted-foreground">{language === 'bn' ? 'বর্তমান ব্যালেন্স' : 'Current Balance'}</p>
                         <p className="text-sm font-medium leading-none text-primary">৳{walletBalanceString}</p>
                       </div>
                     </DropdownMenuLabel>
                     <DropdownMenuSeparator />
-                     <DropdownMenuItem asChild onClick={() => setIsWalletMenuOpen(false)}>
-                      <Link href="/wallet?action=deposit" className="cursor-pointer w-full">
+                     <DropdownMenuItem asChild onClick={() => setIsWalletMenuOpen(false)} className="cursor-pointer hover:bg-accent focus:bg-accent">
+                      <Link href="/wallet?action=deposit" className="w-full">
                         <Banknote className="mr-2 h-4 w-4" />
                         <span>{language === 'bn' ? 'টাকা জমা দিন' : 'Deposit Funds'}</span>
                       </Link>
@@ -560,23 +578,23 @@ export function Header() {
                       <DropdownMenuLabel className="px-2 py-1.5 text-xs font-normal text-muted-foreground">
                         {language === 'bn' ? 'ডিপোজিট মাধ্যম:' : 'Deposit Methods:'}
                       </DropdownMenuLabel>
-                      <DropdownMenuItem asChild onClick={() => setIsWalletMenuOpen(false)}>
-                        <Link href="/wallet?method=bkash&action=deposit" className="cursor-pointer w-full">
+                      <DropdownMenuItem asChild onClick={() => setIsWalletMenuOpen(false)} className="cursor-pointer hover:bg-accent focus:bg-accent">
+                        <Link href="/wallet?method=bkash&action=deposit" className="w-full">
                           <span className="ml-2 font-medium text-pink-600">bKash</span>
                         </Link>
                       </DropdownMenuItem>
-                      <DropdownMenuItem asChild onClick={() => setIsWalletMenuOpen(false)}>
-                        <Link href="/wallet?method=nagad&action=deposit" className="cursor-pointer w-full">
+                      <DropdownMenuItem asChild onClick={() => setIsWalletMenuOpen(false)} className="cursor-pointer hover:bg-accent focus:bg-accent">
+                        <Link href="/wallet?method=nagad&action=deposit" className="w-full">
                           <span className="ml-2 font-medium text-orange-500">Nagad</span>
                         </Link>
                       </DropdownMenuItem>
-                      <DropdownMenuItem asChild onClick={() => setIsWalletMenuOpen(false)}>
-                        <Link href="/wallet?method=rocket&action=deposit" className="cursor-pointer w-full">
+                      <DropdownMenuItem asChild onClick={() => setIsWalletMenuOpen(false)} className="cursor-pointer hover:bg-accent focus:bg-accent">
+                        <Link href="/wallet?method=rocket&action=deposit" className="w-full">
                            <span className="ml-2 font-medium text-purple-600">Rocket</span>
                         </Link>
                       </DropdownMenuItem>
-                      <DropdownMenuItem asChild onClick={() => setIsWalletMenuOpen(false)}>
-                        <Link href="/wallet?method=bank&action=deposit" className="cursor-pointer w-full">
+                      <DropdownMenuItem asChild onClick={() => setIsWalletMenuOpen(false)} className="cursor-pointer hover:bg-accent focus:bg-accent">
+                        <Link href="/wallet?method=bank&action=deposit" className="w-full">
                           <Landmark className="mr-2 h-4 w-4" />
                           <span>{language === 'bn' ? 'ব্যাংক ট্রান্সফার' : 'Bank Transfer'}</span>
                         </Link>
@@ -584,15 +602,15 @@ export function Header() {
                     </DropdownMenuGroup>
                     
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem asChild onClick={() => setIsWalletMenuOpen(false)}>
-                       <Link href="/wallet?action=withdraw" className="cursor-pointer w-full">
+                    <DropdownMenuItem asChild onClick={() => setIsWalletMenuOpen(false)} className="cursor-pointer hover:bg-accent focus:bg-accent">
+                       <Link href="/wallet?action=withdraw" className="w-full">
                         <CreditCard className="mr-2 h-4 w-4" />
                         <span>{language === 'bn' ? 'টাকা উত্তোলন করুন' : 'Withdraw Funds'}</span>
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem asChild onClick={() => setIsWalletMenuOpen(false)}>
-                      <Link href="/dashboard?tab=history" className="cursor-pointer w-full">
+                    <DropdownMenuItem asChild onClick={() => setIsWalletMenuOpen(false)} className="cursor-pointer hover:bg-accent focus:bg-accent">
+                      <Link href="/dashboard?tab=history" className="w-full">
                         <History className="mr-2 h-4 w-4" />
                         <span>{language === 'bn' ? 'লেনদেনের ইতিহাস' : 'Transaction History'}</span>
                       </Link>
@@ -604,16 +622,77 @@ export function Header() {
 
               {topNavRightLinks.map((item) => {
                   if (item.authRequired && !currentUser) return null;
-                  if (item.mobileOnly) return null; // Don't show mobileOnly links on desktop
+                  if (item.mobileOnly) return null; 
                   return (
-                      <Button variant="ghost" size="sm" className="hidden md:inline-flex text-xs px-2.5 py-1.5" asChild key={item.key}>
+                      <Button variant="ghost" size="sm" className="hidden md:inline-flex text-xs px-2.5 py-1.5 hover:bg-accent hover:text-accent-foreground" asChild key={item.key}>
                           <Link href={item.href}><item.icon className="mr-1 h-3.5 w-3.5" /> {item.label}</Link>
                       </Button>
                   );
               })}
+            
+            {/* New Dedicated Wallet Dropdown */}
+            {currentUser && (
+              <DropdownMenu open={isDedicatedWalletMenuOpen} onOpenChange={setIsDedicatedWalletMenuOpen}>
+                <DropdownMenuTrigger asChild>
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className="relative hover:bg-accent hover:text-accent-foreground" 
+                    aria-label={language === 'bn' ? 'ওয়ালেট' : 'Wallet'}
+                    onMouseEnter={handleDedicatedWalletMenuOpen}
+                    onMouseLeave={handleDedicatedWalletMenuClose}
+                    onClick={() => setIsDedicatedWalletMenuOpen(prev => !prev)}
+                  >
+                    <WalletCards className="h-5 w-5" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent 
+                  align="end" 
+                  className="w-60 bg-card border-border shadow-lg"
+                  onMouseEnter={handleDedicatedWalletMenuContentEnter}
+                  onMouseLeave={handleDedicatedWalletMenuContentLeave}
+                >
+                  <DropdownMenuLabel className="font-semibold text-foreground">{language === 'bn' ? 'ওয়ালেট অপশন' : 'Wallet Options'}</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuGroup>
+                    <DropdownMenuLabel className="px-2 py-1.5 text-xs text-muted-foreground">
+                      {language === 'bn' ? 'ডিপোজিট করুন' : 'Deposit'}
+                    </DropdownMenuLabel>
+                    <DropdownMenuItem asChild className="cursor-pointer hover:bg-accent focus:bg-accent" onClick={() => setIsDedicatedWalletMenuOpen(false)}>
+                      <Link href="/wallet?action=deposit&method=bkash">
+                        <span className="ml-2 font-medium text-pink-600">bKash</span>
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild className="cursor-pointer hover:bg-accent focus:bg-accent" onClick={() => setIsDedicatedWalletMenuOpen(false)}>
+                      <Link href="/wallet?action=deposit&method=nagad">
+                        <span className="ml-2 font-medium text-orange-500">Nagad</span>
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild className="cursor-pointer hover:bg-accent focus:bg-accent" onClick={() => setIsDedicatedWalletMenuOpen(false)}>
+                      <Link href="/wallet?action=deposit&method=rocket">
+                        <span className="ml-2 font-medium text-purple-600">Rocket</span>
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild className="cursor-pointer hover:bg-accent focus:bg-accent" onClick={() => setIsDedicatedWalletMenuOpen(false)}>
+                      <Link href="/wallet?action=deposit&method=bank">
+                        <Landmark className="mr-2 h-4 w-4" />
+                        <span>{language === 'bn' ? 'ব্যাংক ট্রান্সফার' : 'Bank Transfer'}</span>
+                      </Link>
+                    </DropdownMenuItem>
+                  </DropdownMenuGroup>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild className="cursor-pointer hover:bg-accent focus:bg-accent" onClick={() => setIsDedicatedWalletMenuOpen(false)}>
+                    <Link href="/wallet?action=withdraw">
+                      <ArrowUpFromLine className="mr-2 h-4 w-4" />
+                      <span>{language === 'bn' ? 'টাকা উত্তোলন' : 'Withdraw Funds'}</span>
+                    </Link>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
 
 
-            <Button variant="ghost" size="icon" className="relative" aria-label="Notifications">
+            <Button variant="ghost" size="icon" className="relative hover:bg-accent hover:text-accent-foreground" aria-label="Notifications">
               <Bell className="h-5 w-5" />
               {notificationCount > 0 && (
                 <span className="absolute top-1.5 right-1.5 flex h-2 w-2">
@@ -631,7 +710,7 @@ export function Header() {
                 <DropdownMenuTrigger asChild>
                   <Button 
                     variant="ghost" 
-                    className="relative h-9 w-9 rounded-full"
+                    className="relative h-9 w-9 rounded-full hover:bg-accent"
                     onMouseEnter={handleProfileMenuOpen}
                     onMouseLeave={handleProfileMenuClose}
                     onClick={() => setIsProfileMenuOpen(prev => !prev)} 
@@ -643,13 +722,13 @@ export function Header() {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent 
-                  className="w-56" 
+                  className="w-56 bg-card border-border shadow-lg" 
                   align="end" 
                   forceMount
                   onMouseEnter={handleProfileMenuContentEnter}
                   onMouseLeave={handleProfileMenuContentLeave}
                 >
-                  <DropdownMenuLabel className="font-normal">
+                  <DropdownMenuLabel className="font-normal text-foreground">
                     <div className="flex flex-col space-y-1">
                       <p className="text-sm font-medium leading-none">{currentUser.name}</p>
                       <p className="text-xs leading-none text-muted-foreground">
@@ -659,7 +738,7 @@ export function Header() {
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
                    {userActionLinks.map(item => (
-                      <DropdownMenuItem key={item.key} asChild onClick={() => setIsProfileMenuOpen(false)}>
+                      <DropdownMenuItem key={item.key} asChild onClick={() => setIsProfileMenuOpen(false)} className="cursor-pointer hover:bg-accent focus:bg-accent">
                           <Link href={item.href}>
                               <item.icon className="mr-2 h-4 w-4" />
                               <span>{item.label}</span>
@@ -667,7 +746,7 @@ export function Header() {
                       </DropdownMenuItem>
                    ))}
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => { handleSignOut(); setIsProfileMenuOpen(false); }}>
+                  <DropdownMenuItem onClick={() => { handleSignOut(); setIsProfileMenuOpen(false); }} className="cursor-pointer hover:bg-accent focus:bg-accent">
                     <LogOutIcon className="mr-2 h-4 w-4" />
                     <span>{language === 'bn' ? 'লগআউট' : 'Logout'}</span>
                   </DropdownMenuItem>
@@ -675,10 +754,10 @@ export function Header() {
               </DropdownMenu>
             ) : !loading && !currentUser ? (
               <div className="hidden md:flex items-center space-x-2">
-                <Button variant="ghost" size="sm" asChild>
+                <Button variant="ghost" size="sm" asChild className="hover:bg-accent hover:text-accent-foreground">
                   <Link href="/login"><LogIn className="mr-1.5 h-4 w-4" /> {language === 'bn' ? 'লগইন' : 'Login'}</Link>
                 </Button>
-                <Button size="sm" asChild>
+                <Button size="sm" asChild className="hover:bg-primary/90">
                   <Link href="/signup"><UserPlus className="mr-1.5 h-4 w-4" />{language === 'bn' ? 'সাইন আপ' : 'Sign Up'}</Link>
                 </Button>
               </div>
@@ -692,3 +771,4 @@ export function Header() {
     </>
   );
 }
+
