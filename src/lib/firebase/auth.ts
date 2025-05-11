@@ -6,7 +6,7 @@ import {
   signOut,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword as firebaseSignInWithEmailAndPassword,
-  updateProfile as firebaseUpdateUserProfile,
+  updateProfile as firebaseUpdateProfile,
   PhoneAuthProvider, // Keep for future phone auth
   updatePassword as firebaseUpdatePassword, 
   EmailAuthProvider,
@@ -50,7 +50,7 @@ export const signUpWithEmailAndPassword = async (
     );
     if (userCredential.user) {
       // Update Firebase Auth profile (separate from Firestore document)
-      await firebaseUpdateUserProfile(userCredential.user, { displayName });
+      await firebaseUpdateProfile(userCredential.user, { displayName });
     }
     // Firestore document creation (and bonus flag for new user) is handled by AuthContext's
     // onAuthStateChanged listener calling createUserDocumentFromAuth.
@@ -92,7 +92,7 @@ const determineSignupMethod = (
 // `additionalInformation` is used to provide defaults if creating a new Firestore document.
 export const createUserDocumentFromAuth = async (
   userAuth: FirebaseUser,
-  additionalInformation: Partial<Pick<UserProfile, 'name' | 'email' | 'avatar' | 'languagePreference' | 'signupMethod'>> = {}
+  additionalInformation: Partial<Pick<UserProfile, 'name' | 'email' | 'avatar' | 'languagePreference' | 'signupMethod'| 'vipTier'>> = {}
 ): Promise<UserProfile | null> => {
   if (!userAuth) return null;
 
@@ -114,6 +114,7 @@ export const createUserDocumentFromAuth = async (
       languagePreference: additionalInformation.languagePreference || 'en',
       walletBalance: 0, // New users start with 0 balance before any bonus
       kycStatus: 'not_submitted',
+      vipTier: additionalInformation.vipTier || 'Bronze', // Default to Bronze
       referralCode,
       loginIPs: [],
       phoneNumber: phoneNumber || '', // Use Firebase Auth phone if available

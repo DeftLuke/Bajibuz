@@ -16,6 +16,7 @@ export interface UserProfile {
   languagePreference: 'en' | 'bn';
   walletBalance: number;
   kycStatus: 'pending' | 'verified' | 'rejected' | 'not_submitted';
+  vipTier?: string; // Added vipTier
   referralCode?: string;
   loginIPs?: string[];
   isNewUser?: boolean; // Indicates if the user profile was just created in Firestore
@@ -45,6 +46,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setCurrentUser(prevUser => prevUser ? { ...prevUser, ...updates } : null);
       } catch (error) {
         console.error("AuthContext: Error updating user profile in context:", error);
+        // Optionally re-throw or handle error for UI feedback
+        throw error;
       }
     }
   };
