@@ -8,7 +8,7 @@ import {
   Home, Menu, LogIn, UserPlus, Search,
   Gift, Dices, UsersRound, Trophy, Ticket, AlignJustify, HelpCircle, Settings2, Replace,
   Banknote, CreditCard, Award, UserCog, Bell, WalletCards, Tv, ChevronDown, Star, ShieldQuestion, UserCircle as UserCircleIcon, LogOut as LogOutIcon,
-  Gamepad2 as Gamepad2Icon, Camera, Edit3, KeyRound, Wallet
+  Gamepad2 as Gamepad2Icon, History // Added History
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Logo } from './logo';
@@ -46,8 +46,10 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+  DropdownMenuGroup,
 } from "@/components/ui/dropdown-menu";
 import { DailySpinPopup } from '@/components/shared/daily-spin-popup';
+import { Wallet } from 'lucide-react'; // Explicitly import Wallet icon
 
 const LAST_VISIT_KEY = 'bajibuz_last_daily_spin_visit';
 const SHOW_WELCOME_SPIN_KEY = 'showWelcomeSpin';
@@ -125,18 +127,16 @@ const mainNavLinksData = [
   { key: 'vip-club', href: '/vip-club', labelEn: 'VIP Club', labelBn: 'ভিআইপি ক্লাব', icon: Award },
 ];
 
+// Simplified: Wallet actions are now in a dedicated dropdown.
 const topNavRightLinksData = [
-    { key: 'deposit', href: '/wallet', labelEn: 'Deposit', labelBn: 'জমা', icon: Banknote, authRequired: true, mobileOnly: false, isWalletAction: true },
-    { key: 'withdraw', href: '/wallet', labelEn: 'Withdraw', labelBn: 'উত্তোলন', icon: CreditCard, authRequired: true, mobileOnly: false, isWalletAction: true },
-    { key: 'my-wallet', href: '/wallet', labelEn: 'My Wallet', labelBn: 'আমার ওয়ালেট', icon: Wallet, authRequired: true, mobileOnly: false, isWalletAction: false },
-    { key: 'kyc', href: '/dashboard?tab=profile', labelEn: 'KYC / Profile', labelBn: 'কেওয়াইসি / প্রোফাইল', icon: UserCog, authRequired: true, mobileOnly: false, isWalletAction: false },
-    { key: 'help', href: '/support', labelEn: 'Help Center', labelBn: 'সহায়তা কেন্দ্র', icon: ShieldQuestion, authRequired: false, mobileOnly: false, isWalletAction: false },
+    { key: 'kyc', href: '/dashboard?tab=profile', labelEn: 'KYC / Profile', labelBn: 'কেওয়াইসি / প্রোফাইল', icon: UserCog, authRequired: true, mobileOnly: false },
+    { key: 'help', href: '/support', labelEn: 'Help Center', labelBn: 'সহায়তা কেন্দ্র', icon: ShieldQuestion, authRequired: false, mobileOnly: false },
 ];
 
 // userActionLinksData defines the items in the profile dropdown.
 const userActionLinksData = [
     { key: 'dashboard', href: '/dashboard', labelEn: 'Dashboard', labelBn: 'ড্যাশবোর্ড', icon: UserCircleIcon },
-    { key: 'wallet', href: '/wallet', labelEn: 'Wallet', labelBn: 'ওয়ালেট', icon: WalletCards},
+    { key: 'wallet', href: '/wallet', labelEn: 'Wallet Page', labelBn: 'ওয়ালেট পৃষ্ঠা', icon: WalletCards}, // Renamed for clarity vs. wallet dropdown
     { 
       key: 'profile-settings',
       href: '/dashboard?tab=profile', 
@@ -212,17 +212,20 @@ export function Header() {
   const { language } = useLanguage();
   const { currentUser, loading } = useAuth(); 
   
-  const [walletBalance, setWalletBalance] = useState("0.00"); 
+  const [walletBalanceString, setWalletBalanceString] = useState("0.00"); 
   const notificationCount = 3; // Placeholder
   const [showSpinPopup, setShowSpinPopup] = useState(false);
 
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const profileMenuTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
+  const [isWalletMenuOpen, setIsWalletMenuOpen] = useState(false);
+  const walletMenuTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
 
   useEffect(() => {
     if (currentUser) {
-      setWalletBalance(currentUser.walletBalance.toLocaleString(language === 'bn' ? 'bn-BD' : 'en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+      setWalletBalanceString(currentUser.walletBalance.toLocaleString(language === 'bn' ? 'bn-BD' : 'en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
       
       if (typeof window !== 'undefined') {
         const today = new Date().toDateString();
@@ -238,7 +241,7 @@ export function Header() {
         }
       }
     } else {
-      setWalletBalance("0.00");
+      setWalletBalanceString("0.00");
       setShowSpinPopup(false); 
     }
   }, [currentUser, language]);
@@ -254,7 +257,8 @@ export function Header() {
   const handleSignOut = async () => {
     await signOutUser();
     setIsMobileMenuOpen(false); 
-    setIsProfileMenuOpen(false); // Close profile menu on logout
+    setIsProfileMenuOpen(false); 
+    setIsWalletMenuOpen(false);
   };
   
   const handleCloseSpinPopup = () => {
@@ -265,28 +269,31 @@ export function Header() {
   };
 
   const handleProfileMenuOpen = () => {
-    if (profileMenuTimeoutRef.current) {
-      clearTimeout(profileMenuTimeoutRef.current);
-    }
+    if (profileMenuTimeoutRef.current) clearTimeout(profileMenuTimeoutRef.current);
     setIsProfileMenuOpen(true);
   };
-
   const handleProfileMenuClose = () => {
-    profileMenuTimeoutRef.current = setTimeout(() => {
-      setIsProfileMenuOpen(false);
-    }, 150); // Delay closing to allow moving mouse to content
+    profileMenuTimeoutRef.current = setTimeout(() => setIsProfileMenuOpen(false), 150);
   };
-  
   const handleProfileMenuContentEnter = () => {
-    if (profileMenuTimeoutRef.current) {
-      clearTimeout(profileMenuTimeoutRef.current);
-    }
+    if (profileMenuTimeoutRef.current) clearTimeout(profileMenuTimeoutRef.current);
+  };
+  const handleProfileMenuContentLeave = () => {
+    profileMenuTimeoutRef.current = setTimeout(() => setIsProfileMenuOpen(false), 150);
   };
 
-  const handleProfileMenuContentLeave = () => {
-    profileMenuTimeoutRef.current = setTimeout(() => {
-      setIsProfileMenuOpen(false);
-    }, 150);
+  const handleWalletMenuOpen = () => {
+    if (walletMenuTimeoutRef.current) clearTimeout(walletMenuTimeoutRef.current);
+    setIsWalletMenuOpen(true);
+  };
+  const handleWalletMenuClose = () => {
+    walletMenuTimeoutRef.current = setTimeout(() => setIsWalletMenuOpen(false), 150);
+  };
+  const handleWalletMenuContentEnter = () => {
+    if (walletMenuTimeoutRef.current) clearTimeout(walletMenuTimeoutRef.current);
+  };
+  const handleWalletMenuContentLeave = () => {
+    walletMenuTimeoutRef.current = setTimeout(() => setIsWalletMenuOpen(false), 150);
   };
 
 
@@ -516,20 +523,65 @@ export function Header() {
                   </Button>
               )}
               
-              {currentUser && (
-                <Link href="/wallet" className="hidden md:flex items-center p-2 hover:bg-accent rounded-md" aria-label="Wallet">
-                  <WalletCards className="h-5 w-5 text-primary" />
-                  <span className="ml-1.5 text-xs font-medium text-muted-foreground">৳{walletBalance}</span>
-                </Link>
+              {/* Wallet Dropdown */}
+              {!loading && currentUser && (
+                <DropdownMenu open={isWalletMenuOpen} onOpenChange={setIsWalletMenuOpen}>
+                  <DropdownMenuTrigger asChild>
+                    <Button 
+                      variant="ghost" 
+                      className="hidden md:flex items-center text-xs px-2.5 py-1.5 h-auto rounded-md hover:bg-accent"
+                      onMouseEnter={handleWalletMenuOpen}
+                      onMouseLeave={handleWalletMenuClose}
+                      onClick={() => setIsWalletMenuOpen(prev => !prev)}
+                    >
+                      <Wallet className="mr-1.5 h-4 w-4 text-primary" />
+                      <span className="font-medium">৳{walletBalanceString}</span>
+                      <ChevronDown className="ml-1 h-3 w-3 text-muted-foreground"/>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent 
+                    className="w-56" 
+                    align="end" 
+                    forceMount
+                    onMouseEnter={handleWalletMenuContentEnter}
+                    onMouseLeave={handleWalletMenuContentLeave}
+                  >
+                    <DropdownMenuLabel className="font-normal">
+                      <div className="flex flex-col space-y-1">
+                        <p className="text-xs text-muted-foreground">{language === 'bn' ? 'বর্তমান ব্যালেন্স' : 'Current Balance'}</p>
+                        <p className="text-sm font-medium leading-none text-primary">৳{walletBalanceString}</p>
+                      </div>
+                    </DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem asChild onClick={() => setIsWalletMenuOpen(false)}>
+                      <Link href="/wallet" className="cursor-pointer"> {/* Or /dashboard?tab=wallet */}
+                        <Banknote className="mr-2 h-4 w-4" />
+                        <span>{language === 'bn' ? 'জমা করুন' : 'Deposit'}</span>
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild onClick={() => setIsWalletMenuOpen(false)}>
+                       <Link href="/wallet" className="cursor-pointer"> {/* Or /dashboard?tab=wallet */}
+                        <CreditCard className="mr-2 h-4 w-4" />
+                        <span>{language === 'bn' ? 'উত্তোলন করুন' : 'Withdraw'}</span>
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem asChild onClick={() => setIsWalletMenuOpen(false)}>
+                      <Link href="/dashboard?tab=history" className="cursor-pointer">
+                        <History className="mr-2 h-4 w-4" />
+                        <span>{language === 'bn' ? 'লেনদেনের ইতিহাস' : 'Transaction History'}</span>
+                      </Link>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               )}
 
+
+              {/* Other Links (KYC, Help) from topNavRightLinksData */}
               {topNavRightLinks.map((item) => {
                   if (item.authRequired && !currentUser) return null;
-                  
-                  const buttonVariant = item.isWalletAction ? "outline" : "ghost";
-                  
                   return (
-                      <Button variant={buttonVariant} size="sm" className="hidden md:inline-flex text-xs px-2.5 py-1.5" asChild key={item.key}>
+                      <Button variant="ghost" size="sm" className="hidden md:inline-flex text-xs px-2.5 py-1.5" asChild key={item.key}>
                           <Link href={item.href}><item.icon className="mr-1 h-3.5 w-3.5" /> {item.label}</Link>
                       </Button>
                   );
@@ -615,3 +667,4 @@ export function Header() {
     </>
   );
 }
+
