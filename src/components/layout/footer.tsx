@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { Logo } from './logo';
 import { useLanguage } from '@/context/language-context';
+import { useState, useEffect } from 'react'; // Import useState and useEffect
 
 const footerLinkDetails = [
   { href: '/support', labelEn: 'Help Center', labelBn: 'সহায়তা কেন্দ্র' },
@@ -14,8 +15,13 @@ const footerLinkDetails = [
 ];
 
 export function Footer() {
-  const currentYear = new Date().getFullYear();
+  const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
   const { language } = useLanguage();
+
+  useEffect(() => {
+    // Ensure currentYear is set on the client after hydration
+    setCurrentYear(new Date().getFullYear());
+  }, []); // Empty dependency array ensures this runs once on mount
 
   const footerLinks = footerLinkDetails.map(link => ({
     ...link,
