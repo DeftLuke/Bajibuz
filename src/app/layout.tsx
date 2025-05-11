@@ -37,7 +37,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${geistSans.variable} flex flex-col min-h-screen`}>
+      <body className={`${geistSans.variable} flex flex-col min-h-screen`} suppressHydrationWarning={true}>
         <ThemeProvider
           attribute="class"
           defaultTheme="light"
