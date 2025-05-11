@@ -11,13 +11,16 @@ import { useLanguage } from "@/context/language-context";
 import { useRouter } from 'next/navigation';
 import { signInWithGoogle, signUpWithEmailAndPassword, createUserDocumentFromAuth } from '@/lib/firebase/auth';
 import { useToast } from "@/hooks/use-toast";
-import { useState, type FormEvent } from "react";
+import { useState, type FormEvent, useEffect } from "react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { useAuth } from "@/context/auth-context";
 
 export default function SignupPage() {
   const { language } = useLanguage();
   const router = useRouter();
   const { toast } = useToast();
+  const { currentUser, loading: authLoading } = useAuth();
+
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -28,6 +31,14 @@ export default function SignupPage() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [ageVerified, setAgeVerified] = useState(false);
+
+  useEffect(() => {
+    if (!authLoading && currentUser) {
+      // If user is already logged in (e.g. session persisted after signup)
+      // and AuthContext has confirmed it, redirect to dashboard.
+      router.push('/dashboard');
+    }
+  }, [currentUser, authLoading, router]);
 
 
   const handleEmailSignUp = async (event: FormEvent<HTMLFormElement>) => {
@@ -69,27 +80,25 @@ export default function SignupPage() {
     try {
       const userAuth = await signUpWithEmailAndPassword(email, password, username);
       if (userAuth) {
-        // createUserDocumentFromAuth is now primarily handled by AuthContext listener, 
-        // but we can pass additional info if needed or ensure it's called.
-        // Forcing isNewUser to true here ensures the welcome bonus logic works correctly from signup.
         const userProfile = await createUserDocumentFromAuth(userAuth, { 
           name: username, 
           email, 
           phoneNumber: phone, 
           languagePreference: language,
           signupMethod: 'email',
-          isNewUser: true // Explicitly mark as new for bonus logic
+          isNewUser: true 
         });
         
         if (userProfile) {
+          // Set flag for login bonus popup
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('showLoginBonusPopup', 'true');
+          }
           toast({
             title: language === 'bn' ? 'সফলভাবে সাইন আপ হয়েছে!' : "Successfully Signed Up!",
             description: language === 'bn' ? `স্বাগতম, ${userProfile.name}!` : `Welcome, ${userProfile.name}!`,
           });
-          if (typeof window !== 'undefined') {
-            localStorage.setItem('showLoginBonusPopup', 'true');
-          }
-          router.push('/dashboard');
+          // router.push('/dashboard'); // Removed: Redirection handled by useEffect
         } else {
           const docErrorMessage = language === 'bn' ? 'অ্যাকাউন্ট তৈরি হয়েছে কিন্তু প্রোফাইল সেটআপে সমস্যা হয়েছে। অনুগ্রহ করে সহায়তার সাথে যোগাযোগ করুন।' : 'Account created, but there was an issue setting up your profile. Please contact support.';
           setError(docErrorMessage);
@@ -130,22 +139,21 @@ export default function SignupPage() {
     try {
       const userAuth = await signInWithGoogle();
       if (userAuth) {
-        // createUserDocumentFromAuth is now primarily handled by AuthContext listener.
-        // We can pass isNewUser true to ensure bonus popup.
         const userProfile = await createUserDocumentFromAuth(userAuth, { 
           languagePreference: language,
-          isNewUser: true // Explicitly mark as new for bonus logic
+          isNewUser: true 
         });
 
         if (userProfile) {
+          // Set flag for login bonus popup
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('showLoginBonusPopup', 'true');
+          }
           toast({
             title: language === 'bn' ? 'সফলভাবে সাইন আপ হয়েছে!' : "Successfully Signed Up!",
             description: language === 'bn' ? `স্বাগতম, ${userProfile.name}!` : `Welcome, ${userProfile.name}!`,
           });
-          if (typeof window !== 'undefined') {
-            localStorage.setItem('showLoginBonusPopup', 'true');
-          }
-          router.push('/dashboard');
+          // router.push('/dashboard'); // Removed: Redirection handled by useEffect
         } else {
           const docErrorMessage = language === 'bn' ? 'গুগল সাইন ইন সফল হয়েছে কিন্তু প্রোফাইল সেটআপে সমস্যা হয়েছে। অনুগ্রহ করে সহায়তার সাথে যোগাযোগ করুন।' : 'Google Sign-In successful, but there was an issue setting up your profile. Please contact support.';
           setError(docErrorMessage);
@@ -171,6 +179,17 @@ export default function SignupPage() {
       setIsLoading(false);
     }
   };
+
+  if (authLoading) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <p className="text-xl text-muted-foreground">
+          {language === 'bn' ? 'লোড হচ্ছে...' : 'Loading...'}
+        </p>
+      </div>
+    );
+  }
+
 
   return (
     <div className="flex items-center justify-center py-12">
@@ -247,7 +266,7 @@ export default function SignupPage() {
             </div>
           </CardContent>
           <CardFooter className="flex flex-col gap-4">
-            <Button type="submit" className="w-full" size="lg" disabled={isLoading}>
+            <Button type="submit" className="w-full" size="lg" disabled={isLoading || authLoading}>
               <UserPlus className="mr-2 h-5 w-5" /> 
               {isLoading ? (language === 'bn' ? 'প্রসেস হচ্ছে...' : 'Processing...') : (language === 'bn' ? 'সাইন আপ' : 'Sign Up')}
             </Button>
@@ -264,7 +283,7 @@ export default function SignupPage() {
           </div>
         </div>
         <CardFooter className="flex flex-col gap-4 pt-0">
-           <Button variant="outline" size="lg" className="w-full text-muted-foreground" onClick={handleGoogleSignUp} disabled={isLoading}>
+           <Button variant="outline" size="lg" className="w-full text-muted-foreground" onClick={handleGoogleSignUp} disabled={isLoading || authLoading}>
               <Mail className="mr-2 h-4 w-4"/> 
               {isLoading && (language === 'bn' ? 'প্রসেস হচ্ছে...' : 'Processing...')}
               {!isLoading && (language === 'bn' ? 'Google দিয়ে সাইন আপ' : 'Sign up with Google')}

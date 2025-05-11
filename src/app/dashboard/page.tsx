@@ -7,6 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { UserCircle } from "lucide-react";
 import { useLanguage } from "@/context/language-context";
 import { useAuth } from "@/context/auth-context";
+import Image from 'next/image'; // Import Image
 
 export default function DashboardPage() {
   const { language } = useLanguage();
@@ -15,19 +16,33 @@ export default function DashboardPage() {
 
   useEffect(() => {
     if (!loading && !currentUser) {
-      router.push('/login'); // Redirect to login if not authenticated
+      router.push('/login'); // Redirect to login if not authenticated and auth check is complete
     }
   }, [currentUser, loading, router]);
 
-  if (loading || !currentUser) {
+  if (loading) { // Show loading state while auth status is being determined
     return (
         <div className="flex justify-center items-center h-screen">
             <p className="text-xl text-muted-foreground">
-                {language === 'bn' ? 'লোড হচ্ছে...' : 'Loading...'}
+                {language === 'bn' ? 'ড্যাশবোর্ড লোড হচ্ছে...' : 'Loading Dashboard...'}
             </p>
         </div>
     );
   }
+
+  if (!currentUser) {
+    // This case should ideally be handled by the useEffect redirecting,
+    // but it's a fallback if the component renders before useEffect triggers the redirect.
+    // Or, if loading is false and currentUser is still null (should not happen if redirect logic is correct).
+    return (
+        <div className="flex justify-center items-center h-screen">
+            <p className="text-xl text-muted-foreground">
+                {language === 'bn' ? 'ব্যবহারকারী অনুমোদিত নয়। লগইন পৃষ্ঠায় আপনাকে পাঠানো হচ্ছে...' : 'User not authenticated. Redirecting to login...'}
+            </p>
+        </div>
+    );
+  }
+
 
   return (
     <div className="space-y-8">
@@ -43,7 +58,7 @@ export default function DashboardPage() {
           </p>
         </div>
         {currentUser.avatar ? (
-            <Image src={currentUser.avatar} alt={currentUser.name} width={40} height={40} className="rounded-full" />
+            <Image src={currentUser.avatar} alt={currentUser.name || 'User Avatar'} width={40} height={40} className="rounded-full" />
         ) : (
             <UserCircle className="h-10 w-10 text-primary" />
         )}

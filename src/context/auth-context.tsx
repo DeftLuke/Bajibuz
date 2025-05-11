@@ -1,3 +1,4 @@
+
 'use client';
 
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
@@ -32,7 +33,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(true); // Start with loading true
 
   const updateCurrentUserProfile = async (updates: Partial<UserProfile>) => {
     if (currentUser) {
@@ -48,17 +49,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
 
   useEffect(() => {
+    setLoading(true); // Set loading to true when listener starts or changes
     const unsubscribe = onAuthStateChangedListener(async (user: FirebaseUser | null) => {
       if (user) {
         try {
           let userProfileDoc = await getUserProfile(user.uid);
 
           if (!userProfileDoc) {
+            // Pass isNewUser true so createUserDocumentFromAuth sets localStorage flag
             userProfileDoc = await createUserDocumentFromAuth(user, {
               name: user.displayName || undefined,
               email: user.email || undefined,
               signupMethod: user.providerData.some(p => p.providerId === 'google.com') ? 'google' : 'email',
               avatar: user.photoURL || `https://picsum.photos/seed/${user.uid}/100/100`,
+              isNewUser: true, 
             });
           }
           
@@ -80,15 +84,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           console.error("Error processing auth state change:", error);
           setCurrentUser(null);
         } finally {
-          setLoading(false);
+          setLoading(false); // Auth check complete
         }
       } else {
         setCurrentUser(null);
-        setLoading(false);
+        setLoading(false); // Auth check complete (no user)
       }
     });
 
-    return unsubscribe;
+    return () => {
+        unsubscribe();
+        setLoading(false); // Ensure loading is false on unmount if needed
+    }
   }, []);
 
   const value: AuthContextType = {
@@ -112,4 +119,3 @@ export function useAuth(): AuthContextType {
   }
   return context;
 }
-

@@ -8,19 +8,30 @@ import { LogIn, Mail, AlertCircle } from "lucide-react";
 import Link from "next/link";
 import { useLanguage } from "@/context/language-context";
 import { useRouter } from 'next/navigation';
-import { signInWithGoogle, signInWithEmail } from '@/lib/firebase/auth'; // createUserDocumentFromAuth removed, handled by AuthContext
+import { signInWithGoogle, signInWithEmail } from '@/lib/firebase/auth';
 import { useToast } from "@/hooks/use-toast";
-import { useState, type FormEvent } from "react";
+import { useState, type FormEvent, useEffect } from "react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { useAuth } from "@/context/auth-context";
 
 export default function LoginPage() {
   const { language } = useLanguage();
   const router = useRouter();
   const { toast } = useToast();
+  const { currentUser, loading: authLoading } = useAuth();
+
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+
+  useEffect(() => {
+    if (!authLoading && currentUser) {
+      // If user is already logged in (e.g. session persisted)
+      // and AuthContext has confirmed it, redirect to dashboard.
+      router.push('/dashboard');
+    }
+  }, [currentUser, authLoading, router]);
 
   const handleGoogleLogin = async () => {
     setIsLoading(true);
@@ -28,14 +39,16 @@ export default function LoginPage() {
     try {
       const userAuth = await signInWithGoogle();
       if (userAuth) {
+        // Set flag for login bonus popup
+        if (typeof window !== 'undefined') {
+            localStorage.setItem('showLoginBonusPopup', 'true');
+        }
+        // AuthContext will update currentUser, then useEffect will redirect
         toast({
           title: language === 'bn' ? 'সফলভাবে লগইন হয়েছে!' : "Successfully Logged In!",
           description: language === 'bn' ? `স্বাগতম, ${userAuth.displayName || 'ব্যবহারকারী'}!` : `Welcome back, ${userAuth.displayName || 'User'}!`,
         });
-        if (typeof window !== 'undefined') {
-            localStorage.setItem('showLoginBonusPopup', 'true');
-        }
-        router.push('/dashboard');
+        // router.push('/dashboard'); // Removed: Redirection handled by useEffect
       }
     } catch (err: any) {
         const message = err.message || (language === 'bn' ? 'গুগল লগইনে একটি সমস্যা হয়েছে। অনুগ্রহ করে আবার চেষ্টা করুন।' : "There was an issue with Google Login. Please try again.");
@@ -66,14 +79,16 @@ export default function LoginPage() {
     try {
       const userAuth = await signInWithEmail(email, password);
       if (userAuth) {
+        // Set flag for login bonus popup
+        if (typeof window !== 'undefined') {
+            localStorage.setItem('showLoginBonusPopup', 'true');
+        }
+        // AuthContext will update currentUser, then useEffect will redirect
         toast({
           title: language === 'bn' ? 'সফলভাবে লগইন হয়েছে!' : "Successfully Logged In!",
           description: language === 'bn' ? 'স্বাগতম!' : 'Welcome back!',
         });
-        if (typeof window !== 'undefined') {
-            localStorage.setItem('showLoginBonusPopup', 'true');
-        }
-        router.push('/dashboard');
+        // router.push('/dashboard'); // Removed: Redirection handled by useEffect
       }
     } catch (err: any) {
       console.error("Login Error:", err);
@@ -105,6 +120,18 @@ export default function LoginPage() {
       setIsLoading(false);
     }
   };
+
+  if (authLoading) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <p className="text-xl text-muted-foreground">
+          {language === 'bn' ? 'লোড হচ্ছে...' : 'Loading...'}
+        </p>
+      </div>
+    );
+  }
+  // If user is already logged in and not loading, they would have been redirected by useEffect.
+  // So, if we reach here, it means currentUser is null and authLoading is false.
 
   return (
     <div className="flex items-center justify-center py-12">
@@ -166,7 +193,7 @@ export default function LoginPage() {
             </div>
           </CardContent>
           <CardFooter className="flex flex-col gap-4">
-            <Button type="submit" className="w-full" size="lg" disabled={isLoading}>
+            <Button type="submit" className="w-full" size="lg" disabled={isLoading || authLoading}>
               <LogIn className="mr-2 h-5 w-5" /> 
               {isLoading ? (language === 'bn' ? 'প্রসেস হচ্ছে...' : 'Processing...') : (language === 'bn' ? 'লগইন' : 'Login')}
             </Button>
@@ -183,7 +210,7 @@ export default function LoginPage() {
           </div>
         </div>
         <CardFooter className="flex flex-col gap-4 pt-0">
-          <Button variant="outline" size="lg" className="w-full text-muted-foreground" onClick={handleGoogleLogin} disabled={isLoading}>
+          <Button variant="outline" size="lg" className="w-full text-muted-foreground" onClick={handleGoogleLogin} disabled={isLoading || authLoading}>
               <Mail className="mr-2 h-4 w-4"/> 
               {isLoading ? (language === 'bn' ? 'প্রসেস হচ্ছে...' : 'Processing...') : (language === 'bn' ? 'Google দিয়ে লগইন' : 'Login with Google')}
            </Button>
