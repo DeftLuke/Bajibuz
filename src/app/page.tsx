@@ -1,44 +1,42 @@
-'use client';
-
+// src/app/page.tsx
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowRight, Gamepad2, Gift, ShieldCheck } from "lucide-react";
-import Image from "next/image";
+import { ArrowRight, Gamepad2, Gift, ShieldCheck, Users, TrendingUp } from "lucide-react";
 import Link from "next/link";
+import PromotionalSlider from "@/components/shared/promotional-slider";
+import Image from "next/image";
+
+// Placeholder for real-time winners board data
+const recentWinners = [
+  { name: "Player_A", game: "Bengal Slots", amount: "৳5,320" },
+  { name: "UserX21", game: "Deshi Roulette", amount: "৳12,500" },
+  { name: "GamingProBD", game: "Crazy Time", amount: "৳8,150" },
+  { name: "Lucky77", game: "Padma Poker", amount: "৳21,000" },
+];
 
 export default function Home() {
   return (
     <div className="space-y-16">
-      {/* Hero Section */}
-      <section className="relative text-center py-16 md:py-24 rounded-xl overflow-hidden shadow-2xl">
-        <Image 
-          src="https://picsum.photos/1200/800?random=1" 
-          alt="Gaming background" 
-          layout="fill" 
-          objectFit="cover" 
-          quality={80}
-          className="absolute inset-0 z-0 opacity-30"
-          data-ai-hint="abstract gaming"
-        />
-        <div className="relative z-10 container mx-auto px-4">
-          <h1 className="text-4xl md:text-6xl font-bold mb-6 text-primary animate-fade-in-down">
-            Welcome to DeshiSpin!
-          </h1>
-          <p className="text-lg md:text-xl text-muted-foreground mb-8 max-w-2xl mx-auto animate-fade-in-up">
-            Experience the thrill of online gaming with a local touch. Join thousands of players and win big!
-          </p>
-          <div className="space-x-4 animate-fade-in-up animation-delay-300">
-            <Button size="lg" asChild>
-              <Link href="/signup">
-                Join Now <ArrowRight className="ml-2 h-5 w-5" />
-              </Link>
-            </Button>
-            <Button size="lg" variant="secondary" asChild>
-              <Link href="/games">
-                Explore Games
-              </Link>
-            </Button>
-          </div>
+      {/* Promotional Slider Section */}
+      <PromotionalSlider />
+
+      {/* Game Categories Quick Links - Placeholder */}
+      <section className="py-8">
+        <h2 className="text-3xl font-bold text-center mb-8 text-foreground">জনপ্রিয় গেম বিভাগ (Popular Game Categories)</h2>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {[
+            { name: "Hot Today", icon: TrendingUp, link: "/games?category=hot", dataAiHint: "flames icon" },
+            { name: "New Releases", icon: Gift, link: "/games?category=new", dataAiHint: "gift box"},
+            { name: "Card Games", icon: Users, link: "/games?category=card", dataAiHint: "playing cards"}, // Using Users as placeholder for cards
+            { name: "Bangla Classics", icon: Gamepad2, link: "/games?category=bangla-classics", dataAiHint: "traditional pattern"},
+          ].map(category => (
+            <Link href={category.link} key={category.name}>
+              <Card className="text-center p-4 hover:shadow-primary/20 transition-shadow duration-300 cursor-pointer h-full flex flex-col justify-center items-center">
+                <category.icon className="h-10 w-10 text-primary mb-2" />
+                <p className="font-semibold text-foreground">{category.name}</p>
+              </Card>
+            </Link>
+          ))}
         </div>
       </section>
 
@@ -49,12 +47,12 @@ export default function Home() {
             <div className="p-3 bg-primary/10 rounded-md inline-block mb-2">
               <Gamepad2 className="h-8 w-8 text-primary" />
             </div>
-            <CardTitle>Exciting Games</CardTitle>
-            <CardDescription>Discover a wide variety of popular and new games tailored for you.</CardDescription>
+            <CardTitle>500+ সেরা গেম (500+ Exciting Games)</CardTitle>
+            <CardDescription>স্লট, রুলেট, পোকার, ব্ল্যাকজ্যাক সহ বিভিন্ন ধরণের জনপ্রিয় ও নতুন গেম আবিষ্কার করুন।</CardDescription>
           </CardHeader>
           <CardContent>
             <Button variant="link" className="px-0 text-primary" asChild>
-              <Link href="/games">See all games <ArrowRight className="ml-1 h-4 w-4" /></Link>
+              <Link href="/games">সব গেম দেখুন <ArrowRight className="ml-1 h-4 w-4" /></Link>
             </Button>
           </CardContent>
         </Card>
@@ -63,12 +61,11 @@ export default function Home() {
             <div className="p-3 bg-primary/10 rounded-md inline-block mb-2">
               <Gift className="h-8 w-8 text-primary" />
             </div>
-            <CardTitle>Daily Rewards</CardTitle>
-            <CardDescription>Log in daily for a chance to win amazing bonuses and free spins.</CardDescription>
+            <CardTitle>দৈনিক পুরস্কার ও বোনাস (Daily Rewards)</CardTitle>
+            <CardDescription>প্রতিদিন লগইন করে আকর্ষণীয় বোনাস এবং ফ্রি স্পিন জেতার সুযোগ নিন। প্রথম ডিপোজিটে ১০০% বোনাস!</CardDescription>
           </CardHeader>
           <CardContent>
-             {/* The DailySpinPopup will handle this interaction */}
-            <p className="text-sm text-muted-foreground">Spin the wheel every day!</p>
+            <p className="text-sm text-muted-foreground">প্রতিদিন স্পিন হুইল ঘুরান!</p>
           </CardContent>
         </Card>
         <Card className="shadow-lg hover:shadow-primary/30 transition-shadow duration-300">
@@ -76,48 +73,51 @@ export default function Home() {
             <div className="p-3 bg-primary/10 rounded-md inline-block mb-2">
               <ShieldCheck className="h-8 w-8 text-primary" />
             </div>
-            <CardTitle>Secure &amp; Local</CardTitle>
-            <CardDescription>Enjoy safe gaming with local payment options like bKash, Nagad, and Rocket.</CardDescription>
+            <CardTitle>নিরাপদ ও সুরক্ষিত পেমেন্ট (Secure & Local Payments)</CardTitle>
+            <CardDescription>বিকাশ, নগদ, রকেট এবং ব্যাংক ট্রান্সফারের মাধ্যমে নিরাপদে গেমিং উপভোগ করুন।</CardDescription>
           </CardHeader>
           <CardContent>
             <Button variant="link" className="px-0 text-primary" asChild>
-              <Link href="/wallet">Payment Methods <ArrowRight className="ml-1 h-4 w-4" /></Link>
+              <Link href="/wallet">পেমেন্ট পদ্ধতি <ArrowRight className="ml-1 h-4 w-4" /></Link>
             </Button>
           </CardContent>
         </Card>
       </section>
 
+      {/* Real-time Winners Board - Placeholder */}
+      <section className="py-8">
+        <h2 className="text-3xl font-bold text-center mb-8 text-foreground">সাম্প্রতিক বিজয়ীগণ (Recent Winners)</h2>
+        <Card className="shadow-xl">
+          <CardContent className="p-0">
+            <ul className="divide-y divide-border">
+              {recentWinners.map((winner, index) => (
+                <li key={index} className="p-4 flex justify-between items-center hover:bg-muted/50">
+                  <div>
+                    <p className="font-semibold text-foreground">{winner.name}</p>
+                    <p className="text-sm text-muted-foreground">{winner.game}</p>
+                  </div>
+                  <p className="font-bold text-primary text-lg">{winner.amount}</p>
+                </li>
+              ))}
+            </ul>
+          </CardContent>
+        </Card>
+         <p className="text-center mt-4 text-sm text-muted-foreground">(এটি একটি ডেমো তালিকা)</p>
+      </section>
+
+
       {/* Call to Action Section */}
       <section className="text-center py-12 bg-card rounded-xl shadow-xl">
-        <h2 className="text-3xl font-semibold mb-4 text-foreground">Ready to Get Started?</h2>
+        <h2 className="text-3xl font-semibold mb-4 text-foreground">বাজিবাজে যোগ দিতে প্রস্তুত? (Ready to Get Started?)</h2>
         <p className="text-muted-foreground mb-8 max-w-xl mx-auto">
-          Join the DeshiSpin community today and dive into a world of endless entertainment and big wins.
+          আজই বাজিবাজ কমিউনিটিতে যোগ দিন এবং অফুরন্ত বিনোদন এবং বড় জয়ের জগতে ডুব দিন।
         </p>
         <Button size="lg" asChild>
           <Link href="/signup">
-            Create Your Account <ArrowRight className="ml-2 h-5 w-5" />
+            একাউন্ট তৈরি করুন <ArrowRight className="ml-2 h-5 w-5" />
           </Link>
         </Button>
       </section>
-      <style jsx>{`
-        .animate-fade-in-down {
-          animation: fadeInDown 0.5s ease-out forwards;
-        }
-        .animate-fade-in-up {
-          animation: fadeInUp 0.5s ease-out forwards;
-        }
-        .animation-delay-300 {
-          animation-delay: 0.3s;
-        }
-        @keyframes fadeInDown {
-          from { opacity: 0; transform: translateY(-20px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-        @keyframes fadeInUp {
-          from { opacity: 0; transform: translateY(20px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-      `}</style>
     </div>
   );
 }

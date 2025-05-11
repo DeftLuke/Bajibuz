@@ -14,30 +14,39 @@ import { useToast } from "@/hooks/use-toast";
 
 
 export default function LanguageToggle() {
-  const [currentLang, setCurrentLang] = useState("EN");
+  const [currentLang, setCurrentLang] = useState("EN"); // Default to English
   const { toast } = useToast();
   const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
     setIsClient(true);
+    // In a real app with next-i18next, you would get the current language from the router or context.
+    // For now, we'll just keep it client-side.
   }, []);
 
 
   const setLanguage = (lang: string) => {
     if (!isClient) return;
     setCurrentLang(lang);
-    // Placeholder for actual language change logic
-    // For a real app, you'd use a library like next-intl or i18next here
-    // and manage the locale state globally.
+    
+    let toastMessage = "";
+    if (lang === 'EN') {
+      toastMessage = "Language set to English. The primary UI is in English.";
+    } else if (lang === 'BN') {
+      toastMessage = "ভাষা বাংলায় পরিবর্তন করা হয়েছে। সম্পূর্ণ বাংলা সমর্থন এখনো উন্নয়নের অধীনে। কিছু প্রচারমূলক বিষয়বস্তু বাংলায় দেখা যাবে। (Language changed to Bengali. Full Bengali support is still under development. Some promotional content will be visible in Bengali.)";
+    }
+
     toast({
-      title: "Language Selection",
-      description: `You selected ${lang === 'EN' ? 'English' : 'বাংলা'}. Full multilingual support is a demo feature and not yet implemented. The UI will remain in English.`,
-      duration: 5000, 
+      title: "ভাষা নির্বাচন (Language Selection)",
+      description: toastMessage,
+      duration: 7000, 
     });
+    // Placeholder for actual language change logic using next-i18next or similar.
+    // This would typically involve changing the locale in the router or a global state.
   };
 
   if (!isClient) {
-    // Render a placeholder or null on the server to avoid hydration mismatch for currentLang
+    // Render a placeholder or null on the server to avoid hydration mismatch
     return (
       <Button variant="ghost" size="icon" className="rounded-full w-10 h-10" disabled>
         <Languages className="h-5 w-5" />

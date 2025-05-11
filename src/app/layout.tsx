@@ -3,8 +3,9 @@ import { Geist, Geist_Mono } from 'next/font/google';
 import './globals.css';
 import { Header } from '@/components/layout/header';
 import { Footer } from '@/components/layout/footer';
-import { Toaster } from "@/components/ui/toaster"
+import { Toaster } from "@/components/ui/toaster";
 import DailySpinPopupWrapper from '@/components/shared/daily-spin-popup-wrapper';
+import { ThemeProvider } from '@/components/theme-provider';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -17,8 +18,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'DeshiSpin - Play Local. Win Global.',
-  description: 'A modern online gaming platform for Bangladesh, inspired by BC.Game.',
+  title: 'Bajibuz - বাংলার প্রথম বিশ্বস্ত অনলাইন ক্যাসিনো',
+  description: 'Bajibuz is Bangladesh’s most trusted online casino. Play slots, roulette, poker, and more. Enjoy secure payments with bKash, Nagad, Rocket. Get 100% welcome bonus!',
 };
 
 export default function RootLayout({
@@ -27,15 +28,22 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="dark">
+    <html lang="en" suppressHydrationWarning>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased flex flex-col min-h-screen`}>
-        <Header />
-        <main className="flex-grow container mx-auto px-4 py-8">
-          {children}
-        </main>
-        <Footer />
-        <Toaster />
-        <DailySpinPopupWrapper />
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="light"
+          enableSystem={false} 
+          storageKey="bajibuz-theme"
+        >
+          <Header />
+          <main className="flex-grow container mx-auto px-4 py-8">
+            {children}
+          </main>
+          <Footer />
+          <Toaster />
+          <DailySpinPopupWrapper />
+        </ThemeProvider>
       </body>
     </html>
   );

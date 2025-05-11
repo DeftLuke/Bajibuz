@@ -7,30 +7,28 @@ import Link from "next/link";
 export async function generateMetadata({ params }: { params: { id: string } }) {
   // In a real app, fetch game name for the title
   return {
-    title: `Play Game ${params.id} - DeshiSpin`,
-    description: `Experience Game ${params.id} on DeshiSpin. Join now for exciting gameplay and big wins!`,
+    title: `Play Game ${params.id} - Bajibuz`,
+    description: `Experience Game ${params.id} on Bajibuz. Join now for exciting gameplay and big wins!`,
   };
 }
 
 // Simulate fetching game data
 async function getGameDetails(id: string) {
-  // In a real app, fetch this from your backend or CMS
-  // Ensure IDs here match those used in your /games page if you want consistent data
   const placeholderGames = [
-    { id: "1", name: "Crazy Time", category: "Live Casino", imageUrl: "https://picsum.photos/800/600?random=20", dataAiHint: "casino wheel", description: "An exciting live casino game show with multiple bonus rounds and high multipliers. Bet on numbers or bonus games to win big!" },
-    { id: "2", name: "Deshi Roulette", category: "Table Games", imageUrl: "https://picsum.photos/800/600?random=21", dataAiHint: "roulette wheel", description: "Classic European roulette with a local Deshi touch. Place your bets and watch the wheel spin for fortune." },
-    { id: "3", name: "Bengal Slots", category: "Slots", imageUrl: "https://picsum.photos/800/600?random=22", dataAiHint: "slot machine", description: "Spin the reels of Bengal Slots and discover hidden treasures. Features exciting bonus games and free spins." },
-    { id: "4", name: "Padma Poker", category: "Card Games", imageUrl: "https://picsum.photos/800/600?random=23", dataAiHint: "poker cards", description: "Test your poker skills in Padma Poker. Play against others or the house in this thrilling card game." },
-    { id: "5", name: "Sundarban Blackjack", category: "Live Casino", imageUrl: "https://picsum.photos/800/600?random=24", dataAiHint: "blackjack game", description: "Try to beat the dealer in Sundarban Blackjack. Aim for 21 in this classic live casino game." },
-    { id: "6", name: "Jamuna Jackpot", category: "Jackpot", imageUrl: "https://picsum.photos/800/600?random=25", dataAiHint: "gold coins", description: "Dreaming of a big win? Jamuna Jackpot offers massive progressive jackpots. One spin could change your life!" },
+    { id: "1", name: "Baji Slots Deluxe", category: "Slots", imageUrl: "https://picsum.photos/800/600?random=81", dataAiHint: "slot machine gold", description: "Experience the deluxe version of Baji Slots with enhanced graphics and bigger jackpots. Spin to win massive prizes!" },
+    { id: "2", name: "Dhaka Roulette", category: "Table Games", imageUrl: "https://picsum.photos/800/600?random=82", dataAiHint: "roulette wheel luxury", description: "Classic European roulette with a sophisticated Dhaka flair. Place your bets and feel the thrill of the spinning wheel." },
+    { id: "3", name: "Bengal Tiger Poker", category: "Card Games", imageUrl: "https://picsum.photos/800/600?random=83", dataAiHint: "poker chips cards", description: "Roar with victory in Bengal Tiger Poker! Test your skills against other players or the house in this exciting card game." },
+    { id: "4", name: "Rocket Crash", category: "Crash", imageUrl: "https://picsum.photos/800/600?random=84", dataAiHint: "graph rocket", description: "Watch the multiplier soar in Rocket Crash! Cash out before the rocket crashes to secure your winnings. How high can you go?" },
+    { id: "5", name: "Sundarban Blackjack VIP", category: "Live Casino", imageUrl: "https://picsum.photos/800/600?random=85", dataAiHint: "blackjack table dealer", description: "Enter the VIP lounge for Sundarban Blackjack. Play against live dealers and aim for 21 in this premium experience." },
+    { id: "6", name: "Mega Moolah Jackpot", category: "Jackpot", imageUrl: "https://picsum.photos/800/600?random=86", dataAiHint: "treasure chest coins", description: "Chase the legendary Mega Moolah Jackpot! This progressive slot offers life-changing sums of money. One spin is all it takes!" },
+    { id: "7", name: "Ludo King (Bangla Classic)", category: "Bangla Classics", imageUrl: "https://picsum.photos/800/600?random=87", dataAiHint: "ludo board game", description: "Enjoy the beloved classic Ludo with a modern twist. Play with friends or other players online." },
+    { id: "8", name: "Aviator Pro", category: "Crash", imageUrl: "https://picsum.photos/800/600?random=88", dataAiHint: "airplane sky", description: "Take flight with Aviator Pro! A thrilling crash game where timing is everything. Bet, watch, and cash out for big rewards." },
   ];
   
-  // Find game by ID, converting param to string if necessary (though it should already be string)
   const game = placeholderGames.find(g => g.id.toString() === id.toString());
   
   if (game) return game;
 
-  // Fallback for any other ID not in the placeholder list
   return {
     id,
     name: `Awesome Game ${id}`,
@@ -50,13 +48,13 @@ export default async function GameDetailPage({ params }: { params: { id: string 
       <div className="mt-4">
         <Link href="/games" className="inline-flex items-center text-sm text-muted-foreground hover:text-primary transition-colors">
           <ArrowLeft className="mr-2 h-4 w-4" />
-          Back to All Games
+          সকল গেমে ফিরে যান (Back to All Games)
         </Link>
       </div>
 
       <Card className="shadow-xl overflow-hidden border-primary/20">
-        <div className="grid md:grid-cols-5"> {/* Changed to 2/3 split for image/text */}
-          <div className="md:col-span-3 relative h-72 md:h-auto min-h-[300px] md:min-h-[500px]"> {/* Increased min-h for larger image */}
+        <div className="grid md:grid-cols-5">
+          <div className="md:col-span-3 relative h-72 md:h-auto min-h-[300px] md:min-h-[500px]">
             <Image
               src={game.imageUrl}
               alt={game.name}
@@ -76,30 +74,29 @@ export default async function GameDetailPage({ params }: { params: { id: string 
               <CardDescription className="text-base leading-relaxed text-muted-foreground">{game.description}</CardDescription>
               
               <div>
-                <h3 className="font-semibold text-foreground mb-2 text-lg">Why Play {game.name}?</h3>
+                <h3 className="font-semibold text-foreground mb-2 text-lg">{game.name} কেন খেলবেন? (Why Play {game.name}?)</h3>
                 <ul className="list-disc list-inside text-muted-foreground space-y-1.5 text-sm">
-                    <li>Thrilling and immersive gameplay experience</li>
-                    <li>High potential for big wins and jackpots</li>
-                    <li>Beautiful graphics and engaging sound effects</li>
-                    <li>Fair play guaranteed with certified RNG</li>
-                    <li>Available on desktop and mobile devices</li>
+                    <li>রোমাঞ্চকর এবং ইমারসিভ গেমপ্লে অভিজ্ঞতা (Thrilling and immersive gameplay)</li>
+                    <li>বড় জয় এবং জ্যাকপটের উচ্চ সম্ভাবনা (High potential for big wins)</li>
+                    <li>সুন্দর গ্রাফিক্স এবং আকর্ষনীয় সাউন্ড ইফেক্ট (Beautiful graphics & sound)</li>
+                    <li>সার্টিফাইড RNG দ্বারা ফেয়ার প্লে নিশ্চিত (Fair play guaranteed)</li>
+                    <li>ডেস্কটপ এবং মোবাইলে খেলার উপযোগী (Available on desktop & mobile)</li>
                 </ul>
               </div>
             </CardContent>
             <CardFooter className="p-6 border-t border-border mt-auto">
               <Button size="lg" className="w-full text-lg py-3">
-                <PlayCircle className="mr-2 h-6 w-6" /> Play {game.name}
+                <PlayCircle className="mr-2 h-6 w-6" /> {game.name} খেলুন (Play)
               </Button>
             </CardFooter>
           </div>
         </div>
       </Card>
 
-      {/* Placeholder for 'Related Games' or 'More Info' sections */}
       <section className="py-8">
-        <h2 className="text-2xl font-semibold text-foreground mb-6 text-center">You Might Also Like</h2>
+        <h2 className="text-2xl font-semibold text-foreground mb-6 text-center">আপনার জন্য আরও গেম (You Might Also Like)</h2>
         {/* TODO: Add a component to display a few related game cards */}
-        <p className="text-center text-muted-foreground">More game suggestions coming soon!</p>
+        <p className="text-center text-muted-foreground">আরও গেমের সাজেশন শীঘ্রই আসছে! (More game suggestions coming soon!)</p>
       </section>
     </div>
   );

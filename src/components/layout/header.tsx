@@ -1,11 +1,12 @@
 import Link from 'next/link';
 import { 
   Home, User, Wallet, MessageSquare, Menu, LogIn, UserPlus, Search,
-  Gift, Dices, UsersRound, Trophy, Ticket, AlignJustify, HelpCircle, Settings2
+  Gift, Dices, UsersRound, Trophy, Ticket, AlignJustify, HelpCircle, Settings2, Replace // Placeholder for Sports, Lottery
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Logo } from './logo';
 import LanguageToggle from '@/components/shared/language-toggle';
+import ThemeToggle from '@/components/shared/theme-toggle';
 import { 
   Sheet, 
   SheetContent, 
@@ -19,6 +20,7 @@ import { Separator } from '../ui/separator';
 
 const desktopTopNavItems = [
   { href: '/', label: 'Home' },
+  { href: '/promotions', label: 'Promotions' },
   { href: '/faq', label: 'FAQ' },
   { href: '/support', label: 'Support' },
 ];
@@ -26,14 +28,15 @@ const desktopTopNavItems = [
 const gameCategoriesNav = [
   { href: '/games?category=slots', label: 'Slots', icon: Dices },
   { href: '/games?category=live-casino', label: 'Live Casino', icon: UsersRound },
-  { href: '/games?category=table-games', label: 'Table Games', icon: AlignJustify },
-  { href: '/games?category=sports', label: 'Sports', icon: Trophy },
-  { href: '/games?category=lottery', label: 'Lottery', icon: Ticket },
-  { href: '/promotions', label: 'Promotions', icon: Gift },
+  { href: '/games?category=table-games', label: 'Table Games', icon: AlignJustify }, // Replaced icon
+  { href: '/games?category=sports', label: 'Sports', icon: Trophy }, // Placeholder for sports icon
+  { href: '/games?category=lottery', label: 'Lottery', icon: Ticket }, // Placeholder for lottery icon
+  { href: '/games?category=crash', label: 'Crash', icon: Replace }, // Using Replace as placeholder for Crash
 ];
 
 const mobileMainMenuItems = [
     { href: '/', label: 'Home', icon: Home },
+    { href: '/promotions', label: 'Promotions', icon: Gift },
     { href: '/faq', label: 'FAQ', icon: HelpCircle },
     { href: '/dashboard', label: 'Dashboard', icon: User },
     { href: '/wallet', label: 'My Wallet', icon: Wallet },
@@ -48,7 +51,7 @@ export function Header() {
       {/* Main Header Row */}
       <div className="container mx-auto flex h-16 max-w-screen-2xl items-center px-4">
         <div className="flex items-center flex-1"> {/* Left section container */}
-          <Link href="/" className="flex items-center space-x-2 mr-4 lg:mr-6" aria-label="DeshiSpin Home">
+          <Link href="/" className="flex items-center space-x-2 mr-4 lg:mr-6" aria-label="Bajibuz Home">
             <Logo className="h-8 w-auto" />
           </Link>
           <nav className="hidden md:flex items-center space-x-1 lg:space-x-2 text-sm font-medium">
@@ -65,15 +68,10 @@ export function Header() {
         </div>
 
         {/* Right section (Search & Auth Buttons) */}
-        <div className="flex items-center space-x-2 lg:space-x-3">
-          {/* Desktop Search - can be uncommented if needed later
-          <div className="hidden xl:block relative w-56 lg:w-64">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input type="search" placeholder="Search games..." className="pl-9 h-9 bg-card text-sm"/>
-          </div>
-          */}
-          <div className="hidden md:flex items-center space-x-2"> {/* Auth and Lang for Desktop */}
-            <LanguageToggle />
+        <div className="flex items-center space-x-1 lg:space-x-2">
+          <ThemeToggle />
+          <LanguageToggle />
+          <div className="hidden md:flex items-center space-x-2"> {/* Auth for Desktop */}
             <Button variant="outline" size="sm" asChild>
               <Link href="/login"><LogIn className="mr-1.5 h-4 w-4" /> Login</Link>
             </Button>
@@ -82,12 +80,11 @@ export function Header() {
             </Button>
           </div>
         
-          {/* Mobile: Menu Trigger and Lang toggle */}
+          {/* Mobile: Menu Trigger */}
           <div className="md:hidden flex items-center">
-            <LanguageToggle />
             <Sheet>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="ml-1.5">
+                <Button variant="ghost" size="icon" className="ml-1">
                   <Menu className="h-6 w-6" />
                   <span className="sr-only">Toggle menu</span>
                 </Button>

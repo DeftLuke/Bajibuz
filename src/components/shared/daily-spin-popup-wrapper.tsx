@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { DailySpinPopup } from './daily-spin-popup';
 
-const LAST_VISIT_KEY = 'deshispin_last_daily_spin_visit';
+const LAST_VISIT_KEY = 'bajibuz_last_daily_spin_visit';
 
 export default function DailySpinPopupWrapper() {
   const [showPopup, setShowPopup] = useState(false);
@@ -19,6 +19,8 @@ export default function DailySpinPopupWrapper() {
       const lastVisit = localStorage.getItem(LAST_VISIT_KEY);
 
       if (lastVisit !== today) {
+        // For demo purposes, always show if it's the first time or different day
+        // In a real app, you might have more complex logic (e.g., user logged in, eligible for spin)
         setShowPopup(true);
       }
     }
@@ -32,7 +34,7 @@ export default function DailySpinPopupWrapper() {
     }
   };
   
-  if (!isClient) return null;
+  if (!isClient) return null; // Avoid rendering on server if it depends on localStorage
 
   return <DailySpinPopup isOpen={showPopup} onClose={handleClosePopup} />;
 }

@@ -6,8 +6,8 @@ import { LogIn } from "lucide-react";
 import Link from "next/link";
 
 export const metadata = {
-  title: "Login - DeshiSpin",
-  description: "Log in to your DeshiSpin account.",
+  title: "Login - Bajibuz",
+  description: "Log in to your Bajibuz account.",
 };
 
 export default function LoginPage() {
@@ -18,19 +18,19 @@ export default function LoginPage() {
           <div className="inline-block mx-auto p-3 bg-primary/10 rounded-full mb-4">
             <LogIn className="h-10 w-10 text-primary" />
           </div>
-          <CardTitle className="text-3xl">Welcome Back!</CardTitle>
-          <CardDescription>Enter your credentials to access your account.</CardDescription>
+          <CardTitle className="text-3xl">স্বাগতম! (Welcome Back!)</CardTitle>
+          <CardDescription>আপনার অ্যাকাউন্টে প্রবেশ করতে আপনার তথ্য দিন। (Enter your credentials to access your account.)</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-1">
-            <Label htmlFor="email">Email or Username</Label>
+            <Label htmlFor="email">ইমেইল অথবা ইউজারনেম (Email or Username)</Label>
             <Input id="email" type="email" placeholder="you@example.com or username" />
           </div>
           <div className="space-y-1">
             <div className="flex items-center justify-between">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password">পাসওয়ার্ড (Password)</Label>
               <Link href="/forgot-password" passHref>
-                <Button variant="link" size="sm" className="px-0 text-xs text-primary">Forgot password?</Button>
+                <Button variant="link" size="sm" className="px-0 text-xs text-primary">পাসওয়ার্ড ভুলে গেছেন? (Forgot password?)</Button>
               </Link>
             </div>
             <Input id="password" type="password" placeholder="••••••••" />
@@ -38,12 +38,12 @@ export default function LoginPage() {
         </CardContent>
         <CardFooter className="flex flex-col gap-4">
           <Button className="w-full" size="lg">
-            <LogIn className="mr-2 h-5 w-5" /> Login
+            <LogIn className="mr-2 h-5 w-5" /> লগইন (Login)
           </Button>
           <p className="text-sm text-muted-foreground text-center">
-            Don&apos;t have an account?{" "}
+            অ্যাকাউন্ট নেই? (Don&apos;t have an account?){" "}
             <Link href="/signup" className="font-semibold text-primary hover:underline">
-              Sign Up
+              সাইন আপ করুন (Sign Up)
             </Link>
           </p>
         </CardFooter>

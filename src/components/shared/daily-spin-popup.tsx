@@ -19,36 +19,35 @@ interface DailySpinPopupProps {
 }
 
 export function DailySpinPopup({ isOpen, onClose }: DailySpinPopupProps) {
-  const [isClient, setIsClient] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
-    setIsClient(true);
+    setIsMounted(true);
   }, []);
 
-  if (!isClient) {
+  if (!isMounted) {
     return null; 
   }
 
   const handleSpin = () => {
     // Placeholder for spin logic
-    alert("Spinning the wheel! You won a bonus!");
+    alert("চাকা ঘুরছে! আপনি একটি বোনাস জিতেছেন! (Spinning the wheel! You won a bonus!)");
     onClose();
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="sm:max-w-[425px] bg-card border-primary shadow-xl rounded-lg">
         <DialogHeader className="text-center">
           <div className="mx-auto mb-4 p-3 bg-primary/10 rounded-full inline-block">
             <Gift className="h-12 w-12 text-primary" />
           </div>
-          <DialogTitle className="text-2xl font-bold text-primary">Your Daily Spin!</DialogTitle>
+          <DialogTitle className="text-2xl font-bold text-primary">আপনার দৈনিক স্পিন! (Your Daily Spin!)</DialogTitle>
           <DialogDescription className="text-muted-foreground">
-            Spin the wheel for a chance to win exciting bonuses and free spins. Good luck!
+            চাকা ঘুরিয়ে আকর্ষণীয় বোনাস এবং ফ্রি স্পিন জেতার সুযোগ নিন। শুভকামনা! (Spin the wheel for a chance to win exciting bonuses and free spins. Good luck!)
           </DialogDescription>
         </DialogHeader>
         <div className="py-8 flex justify-center items-center">
-          {/* Placeholder for a spin wheel graphic */}
           <div className="relative w-64 h-64">
             <Image 
               src="https://picsum.photos/300/300?random=2" 
@@ -59,13 +58,20 @@ export function DailySpinPopup({ isOpen, onClose }: DailySpinPopupProps) {
               data-ai-hint="colorful wheel"
             />
              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="w-8 h-8 bg-foreground rounded-full border-4 border-card transform -translate-y-1/2 top-0 left-1/2 -translate-x-1/2 rotate-45 origin-center" style={{clipPath: "polygon(50% 0%, 0% 100%, 100% 100%)", top: "calc(50% - 1.5rem)"}}></div>
+                {/* Simplified Pointer */}
+                <div 
+                    className="w-0 h-0 
+                    border-l-[10px] border-l-transparent
+                    border-r-[10px] border-r-transparent
+                    border-t-[20px] border-t-primary transform -translate-y-full top-[calc(50%-10px)]"
+                    style={{ left: 'calc(50% - 10px)'}}
+                ></div>
             </div>
           </div>
         </div>
         <DialogFooter className="sm:justify-center">
           <Button type="button" onClick={handleSpin} size="lg" className="w-full sm:w-auto">
-            Spin Now!
+            এখনই স্পিন করুন! (Spin Now!)
           </Button>
         </DialogFooter>
         <button

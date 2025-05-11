@@ -3,8 +3,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { WalletIcon } from "lucide-react";
 
 export const metadata = {
-  title: "My Wallet - DeshiSpin",
-  description: "Manage your funds, deposit, and withdraw.",
+  title: "My Wallet - Bajibuz",
+  description: "Manage your funds, deposit with bKash, Nagad, Rocket, and withdraw winnings on Bajibuz.",
 };
 
 export default function WalletPage() {
@@ -12,8 +12,8 @@ export default function WalletPage() {
     <div className="space-y-8">
       <header className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">My Wallet</h1>
-          <p className="text-muted-foreground">Manage your funds, deposits, and withdrawals.</p>
+          <h1 className="text-3xl font-bold text-foreground">আমার ওয়ালেট (My Wallet)</h1>
+          <p className="text-muted-foreground">আপনার ফান্ড, ডিপোজিট এবং উইথড্রয়াল পরিচালনা করুন। (Manage your funds, deposits, and withdrawals.)</p>
         </div>
          <WalletIcon className="h-10 w-10 text-primary" />
       </header>
