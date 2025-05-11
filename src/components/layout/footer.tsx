@@ -14,7 +14,7 @@ export function Footer() {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="border-t border-border/40 bg-background/95">
+    <footer className="border-t border-border/40 bg-background/95 mt-auto"> {/* Added mt-auto */}
       <div className="container mx-auto max-w-screen-2xl px-4 py-8">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
           <div>
@@ -26,7 +26,7 @@ export function Footer() {
             </p>
           </div>
           <div>
-            <h3 className="text-lg font-semibold mb-3 text-foreground">Quick Links</h3>
+            <h3 className="text-lg font-semibold mb-3 text-gold">Quick Links</h3>
             <ul className="space-y-2">
               {footerLinks.slice(0,3).map((link) => (
                 <li key={link.label}>
@@ -38,7 +38,7 @@ export function Footer() {
             </ul>
           </div>
           <div>
-            <h3 className="text-lg font-semibold mb-3 text-foreground">Support & Info</h3>
+            <h3 className="text-lg font-semibold mb-3 text-gold">Support & Info</h3>
             <ul className="space-y-2">
               {footerLinks.slice(3).map((link) => (
                 <li key={link.label}>

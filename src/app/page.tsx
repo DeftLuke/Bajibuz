@@ -22,7 +22,7 @@ export default function Home() {
 
       {/* Game Categories Quick Links - Placeholder */}
       <section className="py-8">
-        <h2 className="text-3xl font-bold text-center mb-8 text-foreground">জনপ্রিয় গেম বিভাগ (Popular Game Categories)</h2>
+        <h2 className="text-3xl font-bold text-center mb-8 text-gold">জনপ্রিয় গেম বিভাগ (Popular Game Categories)</h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {[
             { name: "Hot Today", icon: TrendingUp, link: "/games?category=hot", dataAiHint: "flames icon" },
@@ -31,7 +31,7 @@ export default function Home() {
             { name: "Bangla Classics", icon: Gamepad2, link: "/games?category=bangla-classics", dataAiHint: "traditional pattern"},
           ].map(category => (
             <Link href={category.link} key={category.name}>
-              <Card className="text-center p-4 hover:shadow-primary/20 transition-shadow duration-300 cursor-pointer h-full flex flex-col justify-center items-center">
+              <Card className="text-center p-4 hover:shadow-primary/20 transition-shadow duration-300 cursor-pointer h-full flex flex-col justify-center items-center hover:border-primary/50 border border-transparent">
                 <category.icon className="h-10 w-10 text-primary mb-2" />
                 <p className="font-semibold text-foreground">{category.name}</p>
               </Card>
@@ -86,7 +86,7 @@ export default function Home() {
 
       {/* Real-time Winners Board - Placeholder */}
       <section className="py-8">
-        <h2 className="text-3xl font-bold text-center mb-8 text-foreground">সাম্প্রতিক বিজয়ীগণ (Recent Winners)</h2>
+        <h2 className="text-3xl font-bold text-center mb-8 text-gold">সাম্প্রতিক বিজয়ীগণ (Recent Winners)</h2>
         <Card className="shadow-xl">
           <CardContent className="p-0">
             <ul className="divide-y divide-border">
@@ -108,11 +108,11 @@ export default function Home() {
 
       {/* Call to Action Section */}
       <section className="text-center py-12 bg-card rounded-xl shadow-xl">
-        <h2 className="text-3xl font-semibold mb-4 text-foreground">বাজিবাজে যোগ দিতে প্রস্তুত? (Ready to Get Started?)</h2>
+        <h2 className="text-3xl font-semibold mb-4 text-gold">বাজিবাজে যোগ দিতে প্রস্তুত? (Ready to Get Started?)</h2>
         <p className="text-muted-foreground mb-8 max-w-xl mx-auto">
           আজই বাজিবাজ কমিউনিটিতে যোগ দিন এবং অফুরন্ত বিনোদন এবং বড় জয়ের জগতে ডুব দিন।
         </p>
-        <Button size="lg" asChild>
+        <Button size="lg" asChild className="bg-gradient-primary-accent text-primary-foreground hover:opacity-90 transition-opacity">
           <Link href="/signup">
             একাউন্ট তৈরি করুন <ArrowRight className="ml-2 h-5 w-5" />
           </Link>

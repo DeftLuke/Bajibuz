@@ -35,7 +35,7 @@ export default function GamesPage() {
     <div className="space-y-12">
       <header className="flex flex-col md:flex-row items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-foreground flex items-center">
+          <h1 className="text-3xl font-bold text-gold flex items-center">
             <Gamepad2 className="mr-3 h-8 w-8 text-primary" /> সকল গেম (All Games)
           </h1>
           <p className="text-muted-foreground">আপনার পছন্দের গেম খুঁজুন অথবা নতুন গেম আবিষ্কার করুন। (Find your favorite games or discover new ones.)</p>
@@ -56,7 +56,10 @@ export default function GamesPage() {
           {section.games.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {section.games.map((game) => (
-                <Card key={game.id} className="overflow-hidden group transition-all hover:shadow-primary/20 hover:scale-105 duration-300 ease-out">
+                <Card 
+                  key={game.id} 
+                  className="overflow-hidden group transition-all hover:shadow-xl hover:shadow-primary/30 hover:scale-108 duration-300 ease-out border border-transparent hover:border-primary/50"
+                >
                   <CardHeader className="p-0 relative">
                     <Image
                       src={game.imageUrl}
@@ -73,7 +76,7 @@ export default function GamesPage() {
                     </div>
                   </CardHeader>
                   <CardContent className="p-4">
-                    <Button className="w-full" asChild>
+                    <Button className="w-full bg-primary hover:bg-primary/90" asChild>
                       <Link href={`/games/${game.id}`}>
                         <PlayCircle className="mr-2 h-5 w-5" /> এখনই খেলুন (Play Now)
                       </Link>

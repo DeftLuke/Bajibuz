@@ -9,7 +9,7 @@ import { ThemeProvider } from '@/components/theme-provider';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
-  subsets: ['latin'],
+  subsets: ['latin', 'bengali'], // Ensure bengali subset is included
 });
 
 const geistMono = Geist_Mono({
@@ -29,18 +29,20 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased flex flex-col min-h-screen`}>
+      <body className={`${geistSans.variable} ${geistMono.variable} flex flex-col min-h-screen`}>
         <ThemeProvider
           attribute="class"
           defaultTheme="light"
           enableSystem={false} 
           storageKey="bajibuz-theme"
         >
-          <Header />
-          <main className="flex-grow container mx-auto px-4 py-8">
-            {children}
-          </main>
-          <Footer />
+          <div className="flex flex-col flex-1"> {/* Wrapper for consistent full height */}
+            <Header />
+            <main className="flex-grow container mx-auto px-4 py-8">
+              {children}
+            </main>
+            <Footer />
+          </div>
           <Toaster />
           <DailySpinPopupWrapper />
         </ThemeProvider>

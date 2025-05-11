@@ -96,7 +96,7 @@ export default function PromotionsPage() {
     <div className="space-y-10">
       <header className="text-center py-8">
         <Gift className="mx-auto h-16 w-16 text-primary mb-4 animate-pulse" />
-        <h1 className="text-4xl font-bold text-foreground">বিশেষ প্রমোশন (Exclusive Promotions)</h1>
+        <h1 className="text-4xl font-bold text-gold">বিশেষ প্রমোশন (Exclusive Promotions)</h1>
         <p className="text-xl text-muted-foreground mt-2">সেরা অফারগুলো লুফে নিন এবং বড় জয়ের সম্ভাবনা বাড়ান! (Grab the best offers and boost your chances to win big!)</p>
       </header>
 
@@ -129,7 +129,7 @@ export default function PromotionsPage() {
                   <span>মেয়াদ: {promo.expiry} (Valid: {promo.expiry})</span>
                 </div>
                 <div className="flex flex-col sm:flex-row gap-3">
-                    <Button className="flex-1 text-base py-2.5">
+                    <Button variant="shiny" className="flex-1 text-base py-2.5">
                         <Tag className="mr-2 h-5 w-5" /> অফার নিন (Claim Offer)
                     </Button>
                     <Button variant="outline" className="flex-1 text-base py-2.5" asChild>
@@ -152,7 +152,7 @@ export default function PromotionsPage() {
 
       <Card className="mt-16 shadow-lg border-primary/20">
         <CardHeader>
-          <CardTitle className="text-xl">আমাদের প্রমোশন সম্পর্কে জানুন (Understanding Our Promotions)</CardTitle>
+          <CardTitle className="text-xl text-gold">আমাদের প্রমোশন সম্পর্কে জানুন (Understanding Our Promotions)</CardTitle>
         </CardHeader>
         <CardContent className="text-muted-foreground space-y-2">
           <p>সকল প্রমোশন শর্তাবলী সাপেক্ষে। অংশগ্রহণের আগে দয়া করে শর্তাবলী সাবধানে পড়ুন। (All promotions are subject to T&Cs. Please read carefully.)</p>
