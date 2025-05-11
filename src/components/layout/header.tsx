@@ -1,14 +1,14 @@
 // src/components/layout/header.tsx
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react'; // Added useRef
 import Link from 'next/link';
 import Image from 'next/image';
 import { 
   Home, Menu, LogIn, UserPlus, Search,
   Gift, Dices, UsersRound, Trophy, Ticket, AlignJustify, HelpCircle, Settings2, Replace,
-  Banknote, CreditCard, Award, UserCog, Bell, WalletCards, Tv, ChevronDown, Star, ShieldQuestion, UserCircle as UserCircleIcon, LogOut as LogOutIcon, // Renamed UserCircle and LogOut
-  Gamepad2 as Gamepad2Icon 
+  Banknote, CreditCard, Award, UserCog, Bell, WalletCards, Tv, ChevronDown, Star, ShieldQuestion, UserCircle as UserCircleIcon, LogOut as LogOutIcon,
+  Gamepad2 as Gamepad2Icon, Camera, Edit3, KeyRound // Added Camera, Edit3, KeyRound for potential future use
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Logo } from './logo';
@@ -47,7 +47,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { DailySpinPopup } from '@/components/shared/daily-spin-popup'; // Import DailySpinPopup
+import { DailySpinPopup } from '@/components/shared/daily-spin-popup';
 
 const LAST_VISIT_KEY = 'bajibuz_last_daily_spin_visit';
 const SHOW_WELCOME_SPIN_KEY = 'showWelcomeSpin';
@@ -132,11 +132,17 @@ const topNavRightLinksData = [
     { href: '/support', labelEn: 'Help Center', labelBn: 'সহায়তা কেন্দ্র', icon: ShieldQuestion, authRequired: false, mobileOnly: false },
 ];
 
-
+// userActionLinksData defines the items in the profile dropdown.
 const userActionLinksData = [
     { href: '/dashboard', labelEn: 'Dashboard', labelBn: 'ড্যাশবোর্ড', icon: UserCircleIcon },
     { href: '/wallet', labelEn: 'Wallet', labelBn: 'ওয়ালেট', icon: WalletCards},
-    { href: '/dashboard?tab=profile', labelEn: 'Profile Settings', labelBn: 'প্রোফাইল সেটিংস', icon: Settings2 },
+    { 
+      href: '/dashboard?tab=profile', 
+      labelEn: 'Profile Settings', 
+      labelBn: 'প্রোফাইল সেটিংস', 
+      icon: Settings2,
+      // This one link covers: Change Profile Picture, Edit Profile Information, Change Password
+    },
 ];
 
 
@@ -209,11 +215,14 @@ export function Header() {
   const notificationCount = 3; // Placeholder
   const [showSpinPopup, setShowSpinPopup] = useState(false);
 
+  const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+  const profileMenuTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+
   useEffect(() => {
     if (currentUser) {
       setWalletBalance(currentUser.walletBalance.toLocaleString(language === 'bn' ? 'bn-BD' : 'en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
       
-      // Logic for automatic daily/welcome spin popup
       if (typeof window !== 'undefined') {
         const today = new Date().toDateString();
         const lastVisit = localStorage.getItem(LAST_VISIT_KEY);
@@ -229,7 +238,7 @@ export function Header() {
       }
     } else {
       setWalletBalance("0.00");
-      setShowSpinPopup(false); // Don't show spin popup if not logged in
+      setShowSpinPopup(false); 
     }
   }, [currentUser, language]);
 
@@ -244,6 +253,7 @@ export function Header() {
   const handleSignOut = async () => {
     await signOutUser();
     setIsMobileMenuOpen(false); 
+    setIsProfileMenuOpen(false); // Close profile menu on logout
   };
   
   const handleCloseSpinPopup = () => {
@@ -252,6 +262,32 @@ export function Header() {
       localStorage.setItem(LAST_VISIT_KEY, new Date().toDateString());
     }
   };
+
+  const handleProfileMenuOpen = () => {
+    if (profileMenuTimeoutRef.current) {
+      clearTimeout(profileMenuTimeoutRef.current);
+    }
+    setIsProfileMenuOpen(true);
+  };
+
+  const handleProfileMenuClose = () => {
+    profileMenuTimeoutRef.current = setTimeout(() => {
+      setIsProfileMenuOpen(false);
+    }, 150); // Delay closing to allow moving mouse to content
+  };
+  
+  const handleProfileMenuContentEnter = () => {
+    if (profileMenuTimeoutRef.current) {
+      clearTimeout(profileMenuTimeoutRef.current);
+    }
+  };
+
+  const handleProfileMenuContentLeave = () => {
+    profileMenuTimeoutRef.current = setTimeout(() => {
+      setIsProfileMenuOpen(false);
+    }, 150);
+  };
+
 
   return (
     <>
@@ -365,20 +401,21 @@ export function Header() {
                       {userActionLinks.map((item) => (
                          <SheetClose key={item.label} asChild>
                             <Link href={item.href} className="flex items-center space-x-3 rounded-md py-2.5 px-2 text-sm hover:bg-accent hover:text-accent-foreground" onClick={() => setIsMobileMenuOpen(false)}>
-                               <item.icon className="h-5 w-5 text-primary" /><span>{item.label}</span>
+                               <item.icon className="mr-2 h-4 w-4" /><span>{item.label}</span>
                             </Link>
                          </SheetClose>
                       ))}
+                       <SheetClose asChild>
+                         <Button variant="ghost" className="w-full flex items-center justify-start space-x-3 rounded-md py-2.5 px-2 text-sm hover:bg-accent hover:text-accent-foreground" onClick={handleSignOut}>
+                            <LogOutIcon className="mr-2 h-4 w-4" /><span>{language === 'bn' ? 'লগআউট' : 'Logout'}</span>
+                         </Button>
+                       </SheetClose>
                     </>
                   )}
                 </nav>
 
                 <div className="border-t border-border p-4 space-y-2.5">
-                  {currentUser ? (
-                    <Button variant="outline" className="w-full" onClick={handleSignOut}>
-                      <LogOutIcon className="mr-2 h-4 w-4" /> {language === 'bn' ? 'লগআউট' : 'Logout'}
-                    </Button>
-                  ) : (
+                  {currentUser ? null : ( // Logout button is inside "My Account" section for mobile now
                     <>
                       <Button variant="outline" className="w-full" asChild><Link href="/login" onClick={() => setIsMobileMenuOpen(false)}><LogIn className="mr-2 h-4 w-4" /> {language === 'bn' ? 'লগইন' : 'Login'}</Link></Button>
                       <Button className="w-full" asChild><Link href="/signup" onClick={() => setIsMobileMenuOpen(false)}><UserPlus className="mr-2 h-4 w-4" />{language === 'bn' ? 'সাইন আপ' : 'Sign Up'}</Link></Button>
@@ -510,16 +547,28 @@ export function Header() {
             <LanguageToggle />
             
             {!loading && currentUser ? (
-               <DropdownMenu>
+               <DropdownMenu open={isProfileMenuOpen} onOpenChange={setIsProfileMenuOpen}>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="relative h-9 w-9 rounded-full">
+                  <Button 
+                    variant="ghost" 
+                    className="relative h-9 w-9 rounded-full"
+                    onMouseEnter={handleProfileMenuOpen}
+                    onMouseLeave={handleProfileMenuClose}
+                    onClick={() => setIsProfileMenuOpen(prev => !prev)} // Toggle on click for accessibility
+                  >
                     <Avatar className="h-8 w-8">
                       <AvatarImage src={currentUser.avatar || `https://picsum.photos/seed/${currentUser.uid}/32/32`} alt={currentUser.name || 'User'} />
                       <AvatarFallback>{currentUser.name?.substring(0,1).toUpperCase() || 'U'}</AvatarFallback>
                     </Avatar>
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-56" align="end" forceMount>
+                <DropdownMenuContent 
+                  className="w-56" 
+                  align="end" 
+                  forceMount
+                  onMouseEnter={handleProfileMenuContentEnter}
+                  onMouseLeave={handleProfileMenuContentLeave}
+                >
                   <DropdownMenuLabel className="font-normal">
                     <div className="flex flex-col space-y-1">
                       <p className="text-sm font-medium leading-none">{currentUser.name}</p>
@@ -530,7 +579,7 @@ export function Header() {
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
                    {userActionLinks.map(item => (
-                      <DropdownMenuItem key={item.href} asChild>
+                      <DropdownMenuItem key={item.href} asChild onClick={() => setIsProfileMenuOpen(false)}>
                           <Link href={item.href}>
                               <item.icon className="mr-2 h-4 w-4" />
                               <span>{item.label}</span>
@@ -538,7 +587,7 @@ export function Header() {
                       </DropdownMenuItem>
                    ))}
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleSignOut}>
+                  <DropdownMenuItem onClick={() => { handleSignOut(); setIsProfileMenuOpen(false); }}>
                     <LogOutIcon className="mr-2 h-4 w-4" />
                     <span>{language === 'bn' ? 'লগআউট' : 'Logout'}</span>
                   </DropdownMenuItem>
@@ -563,4 +612,3 @@ export function Header() {
     </>
   );
 }
-
