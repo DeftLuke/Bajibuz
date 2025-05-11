@@ -7,7 +7,8 @@ import Image from 'next/image';
 import { 
   Home, Menu, LogIn, UserPlus, Search,
   Gift, Dices, UsersRound, Trophy, Ticket, AlignJustify, HelpCircle, Settings2, Replace,
-  Banknote, CreditCard, Award, UserCog, Bell, WalletCards, Tv, ChevronDown, Star, ShieldQuestion, UserCircle
+  Banknote, CreditCard, Award, UserCog, Bell, WalletCards, Tv, ChevronDown, Star, ShieldQuestion, UserCircle,
+  Gamepad2 // Added Gamepad2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Logo } from './logo';
