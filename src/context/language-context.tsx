@@ -21,6 +21,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     setIsClient(true);
+    // This part runs only on client after mount
     const storedLang = localStorage.getItem(LANGUAGE_STORAGE_KEY) as Language | null;
     if (storedLang && (storedLang === 'en' || storedLang === 'bn')) {
       setLanguageState(storedLang);
@@ -28,7 +29,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const setLanguage = (lang: Language) => {
-    if (isClient) {
+    if (isClient) { // Ensure this only runs on the client
       setLanguageState(lang);
       localStorage.setItem(LANGUAGE_STORAGE_KEY, lang);
     }
@@ -36,17 +37,13 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   
   // Update document lang attribute
   useEffect(() => {
-    if (isClient) {
+    if (isClient) { // Ensure this only runs on the client
       document.documentElement.lang = language;
     }
   }, [language, isClient]);
 
-
-  if (!isClient) {
-    // Avoid rendering children until client-side hydration to ensure correct language is applied
-    return null; 
-  }
-
+  // Render children immediately with default language state.
+  // Client-side useEffect will update if a different preference is in localStorage.
   return (
     <LanguageContext.Provider value={{ language, setLanguage }}>
       {children}
