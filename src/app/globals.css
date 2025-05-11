@@ -8,9 +8,9 @@ body {
 
 @layer base {
   :root {
-    /* Light Theme (Default) */
+    /* Light Theme (White) */
     --background: 0 0% 100%; /* White */
-    --background-soft-variant: 0 0% 98%; /* Slightly off-white for gradient */
+    --background-soft-variant: 0 0% 98%; /* Very Light Gray for gradient */
     --foreground: 224 71% 4%; /* Dark Blue/Black (for text contrast on light bg) */
 
     --card: 0 0% 97%; /* Slightly off-white */
@@ -19,14 +19,14 @@ body {
     --popover: 0 0% 97%;
     --popover-foreground: 224 71% 4%;
 
-    --primary: 130 60% 50%; /* Updated Green - slightly more vibrant */
-    --primary-foreground: 20 0% 100%; /* White */
+    --primary: 120 61% 50%; /* Vibrant Green (#32CD32) */
+    --primary-foreground: 0 0% 100%; /* White */
 
-    --secondary: 215 30% 88%; /* Lighter Slate Blue - adjusted lightness */
-    --secondary-foreground: 215 30% 28%; /* Darker Slate Blue for text on light secondary */
+    --secondary: 215 30% 90%; /* Lighter Slate Blue */
+    --secondary-foreground: 215 30% 30%; /* Darker Slate Blue for text on light secondary */
 
-    --muted: 215 30% 92%; /* Very Light Slate Blue/Gray - adjusted lightness */
-    --muted-foreground: 218 15% 50%; /* Medium Gray for muted text - adjusted lightness */
+    --muted: 215 30% 94%; /* Very Light Slate Blue/Gray */
+    --muted-foreground: 218 15% 55%; /* Medium Gray for muted text */
 
     --accent: 45 90% 55%; /* Vibrant Orange/Gold as accent */
     --accent-foreground: 224 71% 4%; /* Dark text on orange/gold accent */
@@ -34,17 +34,16 @@ body {
     --gold: 40 90% 50%; /* Rich Gold */
     --gold-foreground: 0 0% 100%; /* White text on gold */
 
-
     --destructive: 0 72% 51%; /* Red */
-    --destructive-foreground: 20 0% 100%; /* White */
+    --destructive-foreground: 0 0% 100%; /* White */
 
-    --border: 215 20% 82%; /* Light Gray Border - adjusted lightness */
-    --input: 215 20% 88%; /* Lighter Gray for input background - adjusted lightness */
-    --ring: 130 60% 50%; /* Green for focus rings */
+    --border: 215 20% 85%; /* Light Gray Border */
+    --input: 215 20% 90%; /* Lighter Gray for input background */
+    --ring: 120 61% 50%; /* Green for focus rings */
 
     --radius: 0.5rem;
 
-    --chart-1: 130 60% 50%; /* Green */
+    --chart-1: 120 61% 50%; /* Green */
     --chart-2: 220 20% 70%; /* Medium Gray */
     --chart-3: 215 28% 50%; /* Mid Blue */
     --chart-4: 30 90% 55%;  /* Orange */
@@ -52,12 +51,12 @@ body {
     
     --sidebar-background: 0 0% 95%; 
     --sidebar-foreground: 224 71% 10%;
-    --sidebar-primary: 130 60% 45%; 
-    --sidebar-primary-foreground: 20 0% 100%;
+    --sidebar-primary: 120 61% 45%; 
+    --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 0 0% 90%; 
     --sidebar-accent-foreground: 224 71% 4%;
     --sidebar-border: 215 20% 75%;
-    --sidebar-ring: 130 60% 50%;
+    --sidebar-ring: 120 61% 50%;
   }
 
   .dark-teal {
@@ -66,20 +65,20 @@ body {
     --background-soft-variant: 195 53% 15%; /* Slightly lighter for gradient */
     --foreground: 210 20% 98%; /* Off-white */
 
-    --card: 195 50% 18%; /* Slightly lighter Dark Teal for cards - adjusted */
+    --card: 195 50% 18%; /* Slightly lighter Dark Teal for cards */
     --card-foreground: 210 20% 98%;
 
     --popover: 195 50% 18%;
     --popover-foreground: 210 20% 98%;
 
-    --primary: 130 60% 50%; /* Vibrant Green */
-    --primary-foreground: 20 0% 100%; /* White */
+    --primary: 120 61% 50%; /* Vibrant Green (#32CD32) */
+    --primary-foreground: 0 0% 100%; /* White */
 
-    --secondary: 195 40% 25%; /* Muted Teal - adjusted */
+    --secondary: 195 40% 25%; /* Muted Teal */
     --secondary-foreground: 210 20% 98%;
 
     --muted: 195 40% 25%;
-    --muted-foreground: 218 11% 70%; /* Lighter Gray for muted text - adjusted */
+    --muted-foreground: 218 11% 70%; /* Lighter Gray for muted text */
 
     --accent: 45 80% 60%; /* Gold/Orange accent for dark theme */
     --accent-foreground: 195 53% 12%; /* Dark text on gold/orange accent */
@@ -90,24 +89,24 @@ body {
     --destructive: 0 63% 51%; /* Red */
     --destructive-foreground: 210 20% 98%;
 
-    --border: 195 35% 35%; /* Lighter Teal border - adjusted */
+    --border: 195 35% 35%; /* Lighter Teal border */
     --input: 195 40% 25%;
-    --ring: 130 60% 50%; 
+    --ring: 120 61% 50%; 
     
-    --chart-1: 130 60% 50%;
+    --chart-1: 120 61% 50%;
     --chart-2: 210 20% 80%;
     --chart-3: 195 40% 60%; 
     --chart-4: 30 80% 60%; 
     --chart-5: 50 85% 60%; 
 
-    --sidebar-background: 195 60% 10%; /* Darker teal for dark theme sidebar - adjusted */
+    --sidebar-background: 195 60% 10%; /* Darker teal for dark theme sidebar */
     --sidebar-foreground: 210 20% 85%;
-    --sidebar-primary: 130 60% 50%; 
-    --sidebar-primary-foreground: 20 0% 100%;
-    --sidebar-accent: 195 50% 20%; /* Accent for hover on dark sidebar - adjusted */
+    --sidebar-primary: 120 61% 50%; 
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 195 50% 20%; /* Accent for hover on dark sidebar */
     --sidebar-accent-foreground: 210 20% 98%;
     --sidebar-border: 195 35% 30%;
-    --sidebar-ring: 130 60% 50%;
+    --sidebar-ring: 120 61% 50%;
   }
 }
 
@@ -117,6 +116,7 @@ body {
   }
   body {
     @apply bg-background text-foreground antialiased;
+    /* Creates a subtle gradient. For white theme, it's white to very light gray. For dark-teal, dark-teal to slightly lighter dark-teal. */
     background-image: linear-gradient(180deg, hsl(var(--background)) 0%, hsl(var(--background-soft-variant)) 100%);
     min-height: 100vh;
     scroll-behavior: smooth;
@@ -149,6 +149,7 @@ body {
      color: hsl(var(--gold-foreground));
   }
   
+  /* Gradient from primary (green) to accent (gold/orange) */
   .bg-gradient-primary-accent {
     background-image: linear-gradient(to right, hsl(var(--primary)), hsl(var(--accent)));
   }

@@ -22,7 +22,7 @@ export function Footer() {
               <Logo className="h-10 w-auto" />
             </Link>
             <p className="text-sm text-muted-foreground">
-              বাংলার প্রথম বিশ্বস্ত অনলাইন ক্যাসিনো
+              বাংলাদেশের সবচেয়ে বিশ্বস্ত অনলাইন বাজির জায়গা
             </p>
           </div>
           <div>
