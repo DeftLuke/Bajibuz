@@ -8,7 +8,7 @@ import { LogIn, Mail, AlertCircle } from "lucide-react";
 import Link from "next/link";
 import { useLanguage } from "@/context/language-context";
 import { useRouter } from 'next/navigation';
-import { signInWithGoogle, createUserDocumentFromAuth, signInWithEmail } from '@/lib/firebase/auth';
+import { signInWithGoogle, signInWithEmail } from '@/lib/firebase/auth'; // createUserDocumentFromAuth removed, handled by AuthContext
 import { useToast } from "@/hooks/use-toast";
 import { useState, type FormEvent } from "react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -28,14 +28,15 @@ export default function LoginPage() {
     try {
       const userAuth = await signInWithGoogle();
       if (userAuth) {
-        // AuthContext's onAuthStateChangedListener will handle profile creation/fetching
         toast({
           title: language === 'bn' ? 'সফলভাবে লগইন হয়েছে!' : "Successfully Logged In!",
-          description: language === 'bn' ? `স্বাগতম, ${userAuth.displayName}!` : `Welcome back, ${userAuth.displayName}!`,
+          description: language === 'bn' ? `স্বাগতম, ${userAuth.displayName || 'ব্যবহারকারী'}!` : `Welcome back, ${userAuth.displayName || 'User'}!`,
         });
+        if (typeof window !== 'undefined') {
+            localStorage.setItem('showLoginBonusPopup', 'true');
+        }
         router.push('/dashboard');
       }
-      // signInWithGoogle throws on failure, so no explicit 'else' needed for userAuth being null.
     } catch (err: any) {
         const message = err.message || (language === 'bn' ? 'গুগল লগইনে একটি সমস্যা হয়েছে। অনুগ্রহ করে আবার চেষ্টা করুন।' : "There was an issue with Google Login. Please try again.");
         setError(message);
@@ -65,14 +66,15 @@ export default function LoginPage() {
     try {
       const userAuth = await signInWithEmail(email, password);
       if (userAuth) {
-        // AuthContext's onAuthStateChangedListener will handle profile.
         toast({
           title: language === 'bn' ? 'সফলভাবে লগইন হয়েছে!' : "Successfully Logged In!",
           description: language === 'bn' ? 'স্বাগতম!' : 'Welcome back!',
         });
+        if (typeof window !== 'undefined') {
+            localStorage.setItem('showLoginBonusPopup', 'true');
+        }
         router.push('/dashboard');
       }
-       // signInWithEmail throws an error on failure, handled by catch block
     } catch (err: any) {
       console.error("Login Error:", err);
       let message = language === 'bn' ? 'লগইন ব্যর্থ হয়েছে। অনুগ্রহ করে আবার চেষ্টা করুন।' : 'Login failed. Please try again.';
@@ -80,7 +82,7 @@ export default function LoginPage() {
         switch (err.code) {
           case 'auth/user-not-found':
           case 'auth/wrong-password':
-          case 'auth/invalid-credential': // General invalid credential error
+          case 'auth/invalid-credential': 
             message = language === 'bn' ? 'ইমেইল অথবা পাসওয়ার্ড ভুল।' : 'Incorrect email or password.';
             break;
           case 'auth/invalid-email':
@@ -89,7 +91,7 @@ export default function LoginPage() {
           case 'auth/too-many-requests':
             message = language === 'bn' ? 'অনেকবার চেষ্টার কারণে অ্যাকাউন্ট সাময়িকভাবে লক করা হয়েছে।' : 'Access to this account has been temporarily disabled due to many failed login attempts.';
             break;
-          default: // Keep generic message for other errors
+          default: 
             break;
         }
       }

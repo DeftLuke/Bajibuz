@@ -3,7 +3,7 @@
 
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import type { User as FirebaseUser } from 'firebase/auth';
-import { onAuthStateChangedListener, getUserProfile, createUserDocumentFromAuth } from '@/lib/firebase/auth';
+import { onAuthStateChangedListener, getUserProfile, createUserDocumentFromAuth, updateUserDocument } from '@/lib/firebase/auth';
 import type { Timestamp } from 'firebase/firestore';
 
 export interface UserProfile {
@@ -13,7 +13,7 @@ export interface UserProfile {
   avatar: string;
   phoneNumber?: string;
   signupMethod: 'email' | 'google' | 'phone';
-  createdAt: Date; // Always ensure this is a Date object in the context
+  createdAt: Date;
   languagePreference: 'en' | 'bn';
   walletBalance: number;
   kycStatus: 'pending' | 'verified' | 'rejected' | 'not_submitted';
@@ -24,7 +24,8 @@ export interface UserProfile {
 
 interface AuthContextType {
   currentUser: UserProfile | null;
-  setCurrentUser: (user: UserProfile | null) => void; // Though typically not directly used by components
+  setCurrentUser: (user: UserProfile | null) => void;
+  updateCurrentUserProfile: (updates: Partial<UserProfile>) => Promise<void>;
   loading: boolean;
 }
 
@@ -34,35 +35,44 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
 
+  const updateCurrentUserProfile = async (updates: Partial<UserProfile>) => {
+    if (currentUser) {
+      try {
+        await updateUserDocument(currentUser.uid, updates);
+        setCurrentUser(prevUser => prevUser ? { ...prevUser, ...updates } : null);
+      } catch (error) {
+        console.error("Error updating user profile in context:", error);
+        // Optionally re-throw or handle with a toast
+      }
+    }
+  };
+
+
   useEffect(() => {
     const unsubscribe = onAuthStateChangedListener(async (user: FirebaseUser | null) => {
       if (user) {
-        let userProfile = await getUserProfile(user.uid);
+        let userProfileDoc = await getUserProfile(user.uid);
 
-        if (!userProfile) {
-          // User exists in Firebase Auth but not in Firestore, create document
-          userProfile = await createUserDocumentFromAuth(user, {
-             // Pass any necessary defaults or info from user object if signup didn't go through UI
+        if (!userProfileDoc) {
+          userProfileDoc = await createUserDocumentFromAuth(user, {
             name: user.displayName || undefined,
             email: user.email || undefined,
             signupMethod: user.providerData.some(p => p.providerId === 'google.com') ? 'google' : 'email',
-            // languagePreference: 'en', // Default, or detect from browser
+            avatar: user.photoURL || `https://picsum.photos/seed/${user.uid}/100/100`,
           });
         }
         
-        if (userProfile) {
-          // Ensure createdAt is a Date object
+        if (userProfileDoc) {
           const createdAtDate =
-            userProfile.createdAt instanceof Date
-              ? userProfile.createdAt
-              : (userProfile.createdAt as unknown as Timestamp)?.toDate?.() || new Date();
+            userProfileDoc.createdAt instanceof Date
+              ? userProfileDoc.createdAt
+              : (userProfileDoc.createdAt as unknown as Timestamp)?.toDate?.() || new Date();
           
           setCurrentUser({
-            ...userProfile,
+            ...userProfileDoc,
             createdAt: createdAtDate,
           });
         } else {
-          // Handle case where profile creation/fetching failed critically
           setCurrentUser(null); 
           console.error("Failed to get or create user profile for UID:", user.uid);
         }
@@ -73,12 +83,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setLoading(false);
     });
 
-    return unsubscribe; // Cleanup subscription on unmount
+    return unsubscribe;
   }, []);
 
   const value: AuthContextType = {
     currentUser,
-    setCurrentUser, // Expose for potential advanced use cases, though typically managed internally
+    setCurrentUser,
+    updateCurrentUserProfile,
     loading,
   };
 

@@ -6,8 +6,11 @@ import {
   signOut,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword as firebaseSignInWithEmailAndPassword,
-  updateProfile,
+  updateProfile as firebaseUpdateProfile, // Renamed to avoid conflict
   PhoneAuthProvider,
+  updatePassword as firebaseUpdatePassword, // Import updatePassword
+  EmailAuthProvider,
+  reauthenticateWithCredential,
 } from 'firebase/auth';
 import { auth, db } from '@/config/firebase';
 import {
@@ -29,7 +32,7 @@ export const signInWithGoogle = async (): Promise<FirebaseUser | null> => {
     return result.user;
   } catch (error) {
     console.error('Error signing in with Google:', (error as Error).message);
-    throw error; // Re-throw to be handled by UI
+    throw error; 
   }
 };
 
@@ -45,12 +48,14 @@ export const signUpWithEmailAndPassword = async (
       password
     );
     if (userCredential.user) {
-      await updateProfile(userCredential.user, { displayName });
+      // Update Firebase Auth profile
+      await firebaseUpdateProfile(userCredential.user, { displayName });
+      // Firestore document will be created/updated by createUserDocumentFromAuth
     }
     return userCredential.user;
   } catch (error) {
     console.error('Error signing up with email and password:', (error as Error).message);
-    throw error; // Re-throw to be handled by UI
+    throw error; 
   }
 };
 
@@ -60,10 +65,9 @@ export const signInWithEmail = async (email: string, password: string): Promise<
     return userCredential.user;
   } catch (error) {
     console.error('Error signing in with email and password:', (error as Error).message);
-    throw error; // Re-throw to be handled by UI
+    throw error; 
   }
 };
-
 
 export const generateReferralCode = (): string => {
   return Math.random().toString(36).substring(2, 10).toUpperCase();
@@ -91,9 +95,7 @@ const determineSignupMethod = (
 
 export const createUserDocumentFromAuth = async (
   userAuth: FirebaseUser,
-  additionalInformation: Partial<
-    UserProfile & { signupMethod?: 'email' | 'google' | 'phone' }
-  > = {}
+  additionalInformation: Partial<UserProfile> = {}
 ): Promise<UserProfile | null> => {
   if (!userAuth) return null;
 
@@ -102,11 +104,10 @@ export const createUserDocumentFromAuth = async (
 
   if (!userSnapshot.exists()) {
     const { displayName, email, photoURL, uid, phoneNumber } = userAuth;
-    const firestoreCreatedAt = serverTimestamp(); // Use serverTimestamp for new docs
+    const firestoreCreatedAt = serverTimestamp(); 
     const referralCode = generateReferralCode();
 
-    const newUserProfileData = {
-      uid, // ensure uid is part of the data being set
+    const newUserProfileData: Omit<UserProfile, 'createdAt' | 'uid'> & { createdAt: any } = {
       name: additionalInformation.name || displayName || 'Bajibuz User',
       email: additionalInformation.email || email || '',
       avatar:
@@ -114,36 +115,35 @@ export const createUserDocumentFromAuth = async (
       signupMethod:
         additionalInformation.signupMethod || determineSignupMethod(userAuth),
       languagePreference: additionalInformation.languagePreference || 'en',
-      walletBalance: additionalInformation.walletBalance || 0,
+      walletBalance: additionalInformation.walletBalance || 0, // Initialize wallet balance
       kycStatus: additionalInformation.kycStatus || 'not_submitted',
       referralCode,
       loginIPs: additionalInformation.loginIPs || [],
       phoneNumber: additionalInformation.phoneNumber || phoneNumber || '',
-      createdAt: firestoreCreatedAt, // This will be a server timestamp placeholder
+      createdAt: firestoreCreatedAt, 
       isNewUser: true,
     };
 
     try {
-      await setDoc(userDocRef, newUserProfileData);
+      await setDoc(userDocRef, { uid, ...newUserProfileData }); // Add uid here explicitly
       
+      // This flag will be used by LoginBonusPopupWrapper
       if (typeof window !== 'undefined') {
-        localStorage.setItem('showWelcomeSpin', 'true');
+        localStorage.setItem('showLoginBonusPopup', 'true');
       }
-      
-      // Re-fetch to get the resolved server timestamp
+            
       const freshSnapshot = await getDoc(userDocRef);
       if (freshSnapshot.exists()) {
         const data = freshSnapshot.data();
         const finalCreatedAt =
           data.createdAt instanceof Timestamp
             ? data.createdAt.toDate()
-            : new Date(); // Fallback, should be a Timestamp
+            : new Date(); 
 
         return {
-          ...(data as Omit<UserProfile, 'createdAt' | 'uid'>), // Cast to ensure type safety, excluding fields handled
-          uid,
+          ...(data as Omit<UserProfile, 'createdAt'>),
           createdAt: finalCreatedAt,
-        } as UserProfile; // isNewUser is already in data
+        } as UserProfile;
       }
       console.error('Failed to re-fetch user document after creation for UID:', uid);
       return null;
@@ -153,24 +153,24 @@ export const createUserDocumentFromAuth = async (
       return null;
     }
   } else {
-    // User exists, update last login or other relevant info if needed
-    // For now, just return existing profile
-    const existingProfile = userSnapshot.data() as Omit<UserProfile, 'isNewUser' | 'createdAt'> & { createdAt: Timestamp | Date };
+    const existingProfileData = userSnapshot.data();
     const createdAtDate =
-      existingProfile.createdAt instanceof Timestamp
-        ? existingProfile.createdAt.toDate()
-        : existingProfile.createdAt instanceof Date
-        ? existingProfile.createdAt
-        : new Date(); // Fallback if type is unexpected
-
-    // Optionally update last login time or IP here if needed using updateDoc
-    // await updateDoc(userDocRef, { lastLoginAt: serverTimestamp(), /* add IP if available */ });
+      existingProfileData.createdAt instanceof Timestamp
+        ? existingProfileData.createdAt.toDate()
+        : existingProfileData.createdAt instanceof Date
+        ? existingProfileData.createdAt
+        : new Date();
     
+    // For existing users logging in, also show bonus popup via flag
+    if (typeof window !== 'undefined') {
+        localStorage.setItem('showLoginBonusPopup', 'true');
+    }
+
     return {
-      ...existingProfile,
+      ...existingProfileData,
       uid: userAuth.uid,
       createdAt: createdAtDate,
-      isNewUser: false, // Existing user
+      isNewUser: false,
     } as UserProfile;
   }
 };
@@ -185,7 +185,7 @@ export const signOutUser = async (): Promise<void> => {
   try {
     await signOut(auth);
     if (typeof window !== 'undefined') {
-      localStorage.removeItem('showWelcomeSpin'); // Clear this on logout
+      localStorage.removeItem('showLoginBonusPopup');
     }
   } catch (error) {
     console.error('Error signing out:', (error as Error).message);
@@ -202,15 +202,50 @@ export const getUserProfile = async (
 
   if (userSnapshot.exists()) {
     const data = userSnapshot.data();
-    // Ensure createdAt is converted to Date
     const createdAt =
       data.createdAt instanceof Timestamp
         ? data.createdAt.toDate()
         : data.createdAt instanceof Date
         ? data.createdAt
-        : new Date(); // Fallback
+        : new Date(); 
 
     return { ...(data as Omit<UserProfile, 'createdAt' | 'uid'>), uid, createdAt } as UserProfile;
   }
   return null;
+};
+
+export const updateUserDocument = async (uid: string, data: Partial<UserProfile>): Promise<void> => {
+  if (!uid) throw new Error("User ID is required to update document.");
+  const userDocRef = doc(db, 'users', uid);
+  try {
+    await updateDoc(userDocRef, data);
+  } catch (error) {
+    console.error('Error updating user document:', (error as Error).message);
+    throw error;
+  }
+};
+
+// Function to update user's password
+export const updateUserPassword = async (newPassword: string, currentPassword?: string): Promise<void> => {
+  const user = auth.currentUser;
+  if (!user) throw new Error("No user is currently signed in.");
+
+  // Re-authentication is needed for password change for security reasons
+  // This example assumes you'll handle currentPassword input if the user signed up with email/password
+  if (user.providerData.some(p => p.providerId === EmailAuthProvider.PROVIDER_ID) && currentPassword) {
+    const credential = EmailAuthProvider.credential(user.email!, currentPassword);
+    try {
+      await reauthenticateWithCredential(user, credential);
+    } catch (error) {
+      console.error("Re-authentication failed:", error);
+      throw new Error("Re-authentication failed. Please check your current password.");
+    }
+  }
+  // If user signed in with Google, or re-auth is successful (or not needed e.g. recent login)
+  try {
+    await firebaseUpdatePassword(user, newPassword);
+  } catch (error) {
+    console.error('Error updating password:', (error as Error).message);
+    throw error;
+  }
 };

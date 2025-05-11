@@ -9,7 +9,7 @@ import { UserPlus, Mail, AlertCircle } from "lucide-react";
 import Link from "next/link";
 import { useLanguage } from "@/context/language-context";
 import { useRouter } from 'next/navigation';
-import { signInWithGoogle, createUserDocumentFromAuth, signUpWithEmailAndPassword, signOutUser } from '@/lib/firebase/auth';
+import { signInWithGoogle, signUpWithEmailAndPassword, createUserDocumentFromAuth } from '@/lib/firebase/auth';
 import { useToast } from "@/hooks/use-toast";
 import { useState, type FormEvent } from "react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -69,12 +69,16 @@ export default function SignupPage() {
     try {
       const userAuth = await signUpWithEmailAndPassword(email, password, username);
       if (userAuth) {
+        // createUserDocumentFromAuth is now primarily handled by AuthContext listener, 
+        // but we can pass additional info if needed or ensure it's called.
+        // Forcing isNewUser to true here ensures the welcome bonus logic works correctly from signup.
         const userProfile = await createUserDocumentFromAuth(userAuth, { 
           name: username, 
           email, 
           phoneNumber: phone, 
-          languagePreference: language, 
-          signupMethod: 'email' 
+          languagePreference: language,
+          signupMethod: 'email',
+          isNewUser: true // Explicitly mark as new for bonus logic
         });
         
         if (userProfile) {
@@ -82,9 +86,11 @@ export default function SignupPage() {
             title: language === 'bn' ? 'সফলভাবে সাইন আপ হয়েছে!' : "Successfully Signed Up!",
             description: language === 'bn' ? `স্বাগতম, ${userProfile.name}!` : `Welcome, ${userProfile.name}!`,
           });
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('showLoginBonusPopup', 'true');
+          }
           router.push('/dashboard');
         } else {
-          // Firestore document creation failed
           const docErrorMessage = language === 'bn' ? 'অ্যাকাউন্ট তৈরি হয়েছে কিন্তু প্রোফাইল সেটআপে সমস্যা হয়েছে। অনুগ্রহ করে সহায়তার সাথে যোগাযোগ করুন।' : 'Account created, but there was an issue setting up your profile. Please contact support.';
           setError(docErrorMessage);
           toast({
@@ -92,13 +98,8 @@ export default function SignupPage() {
             description: docErrorMessage,
             variant: "destructive",
           });
-          // Optional: Sign out the user if Firestore doc is critical and failed.
-          // This prevents a state where user is authenticated with Firebase Auth but has no Firestore doc.
-          // await signOutUser(); 
         }
       } else {
-        // This case should ideally not be reached if signUpWithEmailAndPassword throws an error on failure.
-        // Kept for robustness.
         throw new Error(language === 'bn' ? 'ব্যবহারকারী তৈরি করতে ব্যর্থ হয়েছে।' : "User creation failed at authentication stage.");
       }
     } catch (err: any) {
@@ -129,9 +130,11 @@ export default function SignupPage() {
     try {
       const userAuth = await signInWithGoogle();
       if (userAuth) {
+        // createUserDocumentFromAuth is now primarily handled by AuthContext listener.
+        // We can pass isNewUser true to ensure bonus popup.
         const userProfile = await createUserDocumentFromAuth(userAuth, { 
           languagePreference: language,
-          // signupMethod is inferred in createUserDocumentFromAuth if not provided
+          isNewUser: true // Explicitly mark as new for bonus logic
         });
 
         if (userProfile) {
@@ -139,6 +142,9 @@ export default function SignupPage() {
             title: language === 'bn' ? 'সফলভাবে সাইন আপ হয়েছে!' : "Successfully Signed Up!",
             description: language === 'bn' ? `স্বাগতম, ${userProfile.name}!` : `Welcome, ${userProfile.name}!`,
           });
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('showLoginBonusPopup', 'true');
+          }
           router.push('/dashboard');
         } else {
           const docErrorMessage = language === 'bn' ? 'গুগল সাইন ইন সফল হয়েছে কিন্তু প্রোফাইল সেটআপে সমস্যা হয়েছে। অনুগ্রহ করে সহায়তার সাথে যোগাযোগ করুন।' : 'Google Sign-In successful, but there was an issue setting up your profile. Please contact support.';
@@ -274,4 +280,3 @@ export default function SignupPage() {
     </div>
   );
 }
-

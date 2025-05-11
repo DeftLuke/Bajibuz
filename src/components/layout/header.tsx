@@ -9,7 +9,7 @@ import {
   Home, Menu, LogIn, UserPlus, Search,
   Gift, Dices, UsersRound, Trophy, Ticket, AlignJustify, HelpCircle, Settings2, Replace,
   Banknote, CreditCard, Award, UserCog, Bell, WalletCards, Tv, ChevronDown, Star, ShieldQuestion, UserCircle, LogOut,
-  Gamepad2
+  Gamepad2 as Gamepad2Icon // Renamed to avoid conflict with variable name
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Logo } from './logo';
@@ -37,9 +37,9 @@ import {
 import { cn } from "@/lib/utils";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { useLanguage } from '@/context/language-context';
-import { useAuth } from '@/context/auth-context'; // Import useAuth
-import { signOutUser } from '@/lib/firebase/auth'; // Import signOutUser
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'; // Import Avatar components
+import { useAuth } from '@/context/auth-context'; 
+import { signOutUser } from '@/lib/firebase/auth'; 
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'; 
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -120,13 +120,21 @@ const mainNavLinksData = [
   { href: '/promotions', labelEn: 'Promotions', labelBn: 'প্রমোশন', icon: Gift },
   { href: '/leaderboard', labelEn: 'Leaderboard', labelBn: 'লিডারবোর্ড', icon: Trophy },
   { href: '/vip-club', labelEn: 'VIP Club', labelBn: 'ভিআইপি ক্লাব', icon: Award },
-  { href: '/support', labelEn: 'Help Center', labelBn: 'সহায়তা কেন্দ্র', icon: HelpCircle },
+  // { href: '/support', labelEn: 'Help Center', labelBn: 'সহায়তা কেন্দ্র', icon: HelpCircle }, // Duplicate from below
 ];
+
+const topNavRightLinksData = [
+    { href: '/wallet', labelEn: 'Deposit', labelBn: 'জমা', icon: Banknote, authRequired: true, mobileOnly: false },
+    { href: '/wallet', labelEn: 'Withdraw', labelBn: 'উত্তোলন', icon: CreditCard, authRequired: true, mobileOnly: false },
+    { href: '/dashboard?tab=profile', labelEn: 'KYC / Profile', labelBn: 'কেওয়াইসি / প্রোফাইল', icon: UserCog, authRequired: true, mobileOnly: false},
+    { href: '/support', labelEn: 'Help Center', labelBn: 'সহায়তা কেন্দ্র', icon: ShieldQuestion, authRequired: false, mobileOnly: false },
+];
+
 
 const userActionLinksData = [
     { href: '/dashboard', labelEn: 'Dashboard', labelBn: 'ড্যাশবোর্ড', icon: UserCircle },
-    { href: '/wallet', labelEn: 'Wallet', labelBn: 'ওয়ালেট', icon: WalletCards}, // Changed from KYC to Wallet
-    { href: '/dashboard?tab=profile', labelEn: 'Profile Settings', labelBn: 'প্রোফাইল সেটিংস', icon: Settings2 }, // Point to profile tab
+    { href: '/wallet', labelEn: 'Wallet', labelBn: 'ওয়ালেট', icon: WalletCards},
+    { href: '/dashboard?tab=profile', labelEn: 'Profile Settings', labelBn: 'প্রোফাইল সেটিংস', icon: Settings2 },
 ];
 
 
@@ -169,18 +177,18 @@ const GameThumbnailItem = React.forwardRef<
       href={props.href || '#'}
       ref={ref}
       className={cn(
-        "group flex flex-col items-center space-y-1 rounded-md p-2 text-center transition-all hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground",
+        "group flex flex-col items-center space-y-1 rounded-md p-2 text-center transition-all hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground transform hover:scale-105 hover:shadow-lg",
         className
       )}
       {...props}
     >
-      <div className="relative h-24 w-20 overflow-hidden rounded-md">
+      <div className="relative h-24 w-20 overflow-hidden rounded-md shadow-md group-hover:shadow-primary/30">
         <Image 
           src={thumbnail} 
           alt={name} 
           layout="fill" 
           objectFit="cover" 
-          className="transition-transform duration-300 group-hover:scale-110 group-hover:shadow-lg"
+          className="transition-transform duration-300 group-hover:scale-110"
           data-ai-hint={dataAiHint}
         />
       </div>
@@ -193,21 +201,22 @@ GameThumbnailItem.displayName = "GameThumbnailItem";
 export function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { language } = useLanguage();
-  const { currentUser, loading } = useAuth(); // Use AuthContext
+  const { currentUser, loading } = useAuth(); 
   
-  const [walletBalance, setWalletBalance] = useState("0.00"); // Placeholder
+  const [walletBalance, setWalletBalance] = useState("0.00"); 
   const notificationCount = 3; // Placeholder
 
   useEffect(() => {
     if (currentUser) {
-      setWalletBalance(currentUser.walletBalance.toFixed(2));
+      setWalletBalance(currentUser.walletBalance.toLocaleString(language === 'bn' ? 'bn-BD' : 'en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
     } else {
       setWalletBalance("0.00");
     }
-  }, [currentUser]);
+  }, [currentUser, language]);
 
 
   const mainNavLinks = mainNavLinksData.map(link => ({...link, label: language === 'bn' ? link.labelBn : link.labelEn}));
+  const topNavRightLinks = topNavRightLinksData.map(link => ({...link, label: language === 'bn' ? link.labelBn : link.labelEn}));
   const userActionLinks = userActionLinksData.map(link => ({...link, label: language === 'bn' ? link.labelBn : link.labelEn}));
   const casinoGameCategories = casinoGameCategoriesData.map(cat => ({...cat, title: language === 'bn' ? cat.titleBn : cat.titleEn, description: language === 'bn' ? cat.descriptionBn : cat.descriptionEn, games: cat.games?.map(g => ({...g, name: language === 'bn' ? g.nameBn : g.nameEn})) }));
   const liveGameOptions = liveGameOptionsData.map(cat => ({...cat, title: language === 'bn' ? cat.titleBn : cat.titleEn, description: language === 'bn' ? cat.descriptionBn : cat.descriptionEn, games: cat.games?.map(g => ({...g, name: language === 'bn' ? g.nameBn : g.nameEn})) }));
@@ -215,8 +224,7 @@ export function Header() {
 
   const handleSignOut = async () => {
     await signOutUser();
-    setIsMobileMenuOpen(false); // Close mobile menu on sign out
-    // router.push('/'); // Optionally redirect to home or login
+    setIsMobileMenuOpen(false); 
   };
 
   return (
@@ -240,7 +248,7 @@ export function Header() {
                 <SheetClose className="absolute right-3 top-3.5 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none" />
               </SheetHeader>
               
-              <nav className="flex-grow overflow-y-auto p-4 space-y-2">
+              <nav className="flex-grow overflow-y-auto p-4 space-y-1">
                 <Input placeholder={language === 'bn' ? 'গেম খুঁজুন...' : 'Search games...'} className="mb-3"/>
                 {mainNavLinks.map((item) => (
                   <SheetClose key={item.label} asChild>
@@ -256,9 +264,9 @@ export function Header() {
                 ))}
 
                 <Accordion type="single" collapsible className="w-full">
-                  <AccordionItem value="casino-games">
+                  <AccordionItem value="casino-games" className="border-b-0">
                     <AccordionTrigger className="flex items-center space-x-3 rounded-md py-2.5 px-2 text-sm hover:bg-accent hover:text-accent-foreground hover:no-underline">
-                      <Gamepad2 className="h-5 w-5 text-primary" />
+                      <Gamepad2Icon className="h-5 w-5 text-primary" />
                        <span>{language === 'bn' ? 'ক্যাসিনো' : 'Casino'}</span>
                     </AccordionTrigger>
                     <AccordionContent className="pl-4">
@@ -272,7 +280,7 @@ export function Header() {
                       ))}
                     </AccordionContent>
                   </AccordionItem>
-                  <AccordionItem value="live-games">
+                  <AccordionItem value="live-games" className="border-b-0">
                     <AccordionTrigger className="flex items-center space-x-3 rounded-md py-2.5 px-2 text-sm hover:bg-accent hover:text-accent-foreground hover:no-underline">
                       <Tv className="h-5 w-5 text-primary" />
                       <span>{language === 'bn' ? 'লাইভ গেম' : 'Live Games'}</span>
@@ -289,6 +297,24 @@ export function Header() {
                     </AccordionContent>
                   </AccordionItem>
                 </Accordion>
+
+                <Separator/>
+                 {topNavRightLinks.map((item) => {
+                    if (item.authRequired && !currentUser) return null;
+                    return (
+                    <SheetClose key={item.label} asChild>
+                        <Link
+                        href={item.href}
+                        className="flex items-center space-x-3 rounded-md py-2.5 px-2 text-sm hover:bg-accent hover:text-accent-foreground"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                        >
+                        <item.icon className="h-5 w-5 text-primary" />
+                        <span>{item.label}</span>
+                        </Link>
+                    </SheetClose>
+                    );
+                })}
+
 
                 {currentUser && (
                   <>
@@ -323,24 +349,25 @@ export function Header() {
           </Sheet>
         </div>
 
-        <Link href="/" className="flex items-center space-x-2 mr-2 md:mr-6" aria-label="Bajibuz Home">
+        <Link href="/" className="flex items-center space-x-2 mr-2 md:mr-4" aria-label="Bajibuz Home">
           <Logo className="h-8 w-auto" />
         </Link>
 
-        <NavigationMenu className="hidden md:flex flex-1">
+        <NavigationMenu className="hidden lg:flex flex-1">
           <NavigationMenuList>
+            {mainNavLinks.slice(0,1).map((item) => ( // Home
+                 <NavigationMenuItem key={item.label}>
+                    <Link href={item.href} legacyBehavior passHref>
+                        <NavigationMenuLink className={navigationMenuTriggerStyle()}>
+                        {item.icon && <item.icon className="mr-1.5 h-4 w-4" />} {item.label}
+                        </NavigationMenuLink>
+                    </Link>
+                 </NavigationMenuItem>
+            ))}
             <NavigationMenuItem>
-              <Link href="/" legacyBehavior passHref>
-                <NavigationMenuLink className={navigationMenuTriggerStyle()}>
-                  <Home className="mr-1.5 h-4 w-4" /> {mainNavLinks[0].label}
-                </NavigationMenuLink>
-              </Link>
-            </NavigationMenuItem>
-
-            <NavigationMenuItem>
-              <NavigationMenuTrigger><Gamepad2 className="mr-1.5 h-4 w-4" /> {language === 'bn' ? 'ক্যাসিনো' : 'Casino'}</NavigationMenuTrigger>
+              <NavigationMenuTrigger><Gamepad2Icon className="mr-1.5 h-4 w-4" /> {language === 'bn' ? 'ক্যাসিনো' : 'Casino'}</NavigationMenuTrigger>
               <NavigationMenuContent>
-                <div className="grid p-4 md:w-[600px] lg:w-[700px] gap-3 grid-cols-3">
+                <div className="grid p-4 md:w-[600px] lg:w-[750px] gap-3 grid-cols-3">
                   {casinoGameCategories.map((category) => (
                     <div key={category.title} className="col-span-1 flex flex-col">
                       <ListItem href={category.href} title={category.title} icon={category.icon}>
@@ -365,7 +392,7 @@ export function Header() {
             <NavigationMenuItem>
               <NavigationMenuTrigger><Tv className="mr-1.5 h-4 w-4" /> {language === 'bn' ? 'লাইভ গেম' : 'Live Games'}</NavigationMenuTrigger>
               <NavigationMenuContent>
-                 <div className="grid p-4 md:w-[500px] lg:w-[600px] gap-3 grid-cols-2">
+                 <div className="grid p-4 md:w-[500px] lg:w-[650px] gap-3 grid-cols-2">
                   {liveGameOptions.map((category) => (
                      <div key={category.title} className="col-span-1 flex flex-col">
                       <ListItem href={category.href} title={category.title} icon={category.icon}>
@@ -400,14 +427,18 @@ export function Header() {
         </NavigationMenu>
 
         <div className="flex items-center space-x-1 md:space-x-2 ml-auto">
+            {topNavRightLinks.map((item) => {
+                if (item.authRequired && !currentUser) return null;
+                if (item.mobileOnly && typeof window !== 'undefined' && window.innerWidth >= 768) return null; // Hide on desktop if mobileOnly
+                return (
+                    <Button variant="ghost" size="sm" className="hidden md:inline-flex text-xs px-2.5 py-1.5" asChild key={item.label}>
+                        <Link href={item.href}><item.icon className="mr-1 h-3.5 w-3.5" /> {item.label}</Link>
+                    </Button>
+                );
+            })}
+
           {currentUser && (
             <>
-              <Button variant="outline" size="sm" className="hidden md:inline-flex" asChild>
-                <Link href="/wallet"><Banknote className="mr-1.5 h-4 w-4" /> {language === 'bn' ? 'জমা' : 'Deposit'}</Link>
-              </Button>
-              <Button variant="outline" size="sm" className="hidden md:inline-flex" asChild>
-                <Link href="/wallet"><CreditCard className="mr-1.5 h-4 w-4" /> {language === 'bn' ? 'উত্তোলন' : 'Withdraw'}</Link>
-              </Button>
               <Link href="/wallet" className="hidden md:flex items-center p-2 hover:bg-accent rounded-md" aria-label="Wallet">
                 <WalletCards className="h-5 w-5 text-primary" />
                 <span className="ml-1.5 text-xs font-medium text-muted-foreground">৳{walletBalance}</span>
@@ -448,24 +479,14 @@ export function Header() {
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
-                  <Link href="/dashboard">
-                    <UserCircle className="mr-2 h-4 w-4" />
-                    <span>{language === 'bn' ? 'ড্যাশবোর্ড' : 'Dashboard'}</span>
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link href="/wallet">
-                    <WalletCards className="mr-2 h-4 w-4" />
-                    <span>{language === 'bn' ? 'আমার ওয়ালেট' : 'My Wallet'}</span>
-                  </Link>
-                </DropdownMenuItem>
-                 <DropdownMenuItem asChild>
-                  <Link href="/dashboard?tab=profile"> {/* Direct link to profile settings */}
-                    <Settings2 className="mr-2 h-4 w-4" />
-                    <span>{language === 'bn' ? 'প্রোফাইল সেটিংস' : 'Profile Settings'}</span>
-                  </Link>
-                </DropdownMenuItem>
+                 {userActionLinks.map(item => (
+                    <DropdownMenuItem key={item.href} asChild>
+                        <Link href={item.href}>
+                            <item.icon className="mr-2 h-4 w-4" />
+                            <span>{item.label}</span>
+                        </Link>
+                    </DropdownMenuItem>
+                 ))}
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleSignOut}>
                   <LogOut className="mr-2 h-4 w-4" />
@@ -482,7 +503,9 @@ export function Header() {
                 <Link href="/signup"><UserPlus className="mr-1.5 h-4 w-4" />{language === 'bn' ? 'সাইন আপ' : 'Sign Up'}</Link>
               </Button>
             </div>
-          ): null /* Show nothing while loading initial auth state */ }
+          ): ( // Loading state
+            <div className="h-9 w-9 rounded-full bg-muted animate-pulse"></div>
+          )}
         </div>
       </div>
     </header>
