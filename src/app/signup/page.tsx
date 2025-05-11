@@ -9,7 +9,7 @@ import { UserPlus, Mail, AlertCircle } from "lucide-react";
 import Link from "next/link";
 import { useLanguage } from "@/context/language-context";
 import { useRouter } from 'next/navigation';
-import { signInWithGoogle, createUserDocumentFromAuth, signUpWithEmailAndPassword } from '@/lib/firebase/auth';
+import { signInWithGoogle, createUserDocumentFromAuth, signUpWithEmailAndPassword, signOutUser } from '@/lib/firebase/auth';
 import { useToast } from "@/hooks/use-toast";
 import { useState, type FormEvent } from "react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -69,7 +69,7 @@ export default function SignupPage() {
     try {
       const userAuth = await signUpWithEmailAndPassword(email, password, username);
       if (userAuth) {
-        await createUserDocumentFromAuth(userAuth, { 
+        const userProfile = await createUserDocumentFromAuth(userAuth, { 
           name: username, 
           email, 
           phoneNumber: phone, 
@@ -77,13 +77,29 @@ export default function SignupPage() {
           signupMethod: 'email' 
         });
         
-        toast({
-          title: language === 'bn' ? 'সফলভাবে সাইন আপ হয়েছে!' : "Successfully Signed Up!",
-          description: language === 'bn' ? `স্বাগতম, ${username}!` : `Welcome, ${username}!`,
-        });
-        router.push('/dashboard');
+        if (userProfile) {
+          toast({
+            title: language === 'bn' ? 'সফলভাবে সাইন আপ হয়েছে!' : "Successfully Signed Up!",
+            description: language === 'bn' ? `স্বাগতম, ${userProfile.name}!` : `Welcome, ${userProfile.name}!`,
+          });
+          router.push('/dashboard');
+        } else {
+          // Firestore document creation failed
+          const docErrorMessage = language === 'bn' ? 'অ্যাকাউন্ট তৈরি হয়েছে কিন্তু প্রোফাইল সেটআপে সমস্যা হয়েছে। অনুগ্রহ করে সহায়তার সাথে যোগাযোগ করুন।' : 'Account created, but there was an issue setting up your profile. Please contact support.';
+          setError(docErrorMessage);
+          toast({
+            title: language === 'bn' ? 'প্রোফাইল ত্রুটি' : "Profile Setup Error",
+            description: docErrorMessage,
+            variant: "destructive",
+          });
+          // Optional: Sign out the user if Firestore doc is critical and failed.
+          // This prevents a state where user is authenticated with Firebase Auth but has no Firestore doc.
+          // await signOutUser(); 
+        }
       } else {
-        throw new Error("User creation failed");
+        // This case should ideally not be reached if signUpWithEmailAndPassword throws an error on failure.
+        // Kept for robustness.
+        throw new Error(language === 'bn' ? 'ব্যবহারকারী তৈরি করতে ব্যর্থ হয়েছে।' : "User creation failed at authentication stage.");
       }
     } catch (err: any) {
       console.error("Signup Error:", err);
@@ -92,6 +108,8 @@ export default function SignupPage() {
         message = language === 'bn' ? 'এই ইমেইল ঠিকানা ইতিমধ্যে ব্যবহৃত হয়েছে।' : 'This email address is already in use.';
       } else if (err.code === 'auth/weak-password') {
         message = language === 'bn' ? 'পাসওয়ার্ডটি খুব দুর্বল।' : 'The password is too weak.';
+      } else if (err.code === 'auth/invalid-email') {
+        message = language === 'bn' ? 'ইমেইল ঠিকানাটি সঠিক নয়।' : 'The email address is not valid.';
       }
       setError(message);
       toast({
@@ -111,21 +129,32 @@ export default function SignupPage() {
     try {
       const userAuth = await signInWithGoogle();
       if (userAuth) {
-        await createUserDocumentFromAuth(userAuth, { 
+        const userProfile = await createUserDocumentFromAuth(userAuth, { 
           languagePreference: language,
-          signupMethod: 'google'
+          // signupMethod is inferred in createUserDocumentFromAuth if not provided
         });
-        toast({
-          title: language === 'bn' ? 'সফলভাবে সাইন আপ হয়েছে!' : "Successfully Signed Up!",
-          description: language === 'bn' ? `স্বাগতম, ${userAuth.displayName}!` : `Welcome, ${userAuth.displayName}!`,
-        });
-        router.push('/dashboard');
+
+        if (userProfile) {
+          toast({
+            title: language === 'bn' ? 'সফলভাবে সাইন আপ হয়েছে!' : "Successfully Signed Up!",
+            description: language === 'bn' ? `স্বাগতম, ${userProfile.name}!` : `Welcome, ${userProfile.name}!`,
+          });
+          router.push('/dashboard');
+        } else {
+          const docErrorMessage = language === 'bn' ? 'গুগল সাইন ইন সফল হয়েছে কিন্তু প্রোফাইল সেটআপে সমস্যা হয়েছে। অনুগ্রহ করে সহায়তার সাথে যোগাযোগ করুন।' : 'Google Sign-In successful, but there was an issue setting up your profile. Please contact support.';
+          setError(docErrorMessage);
+          toast({
+            title: language === 'bn' ? 'প্রোফাইল ত্রুটি' : "Profile Setup Error",
+            description: docErrorMessage,
+            variant: "destructive",
+          });
+        }
       } else {
-        throw new Error("Google sign in did not return userAuth.");
+        throw new Error(language === 'bn' ? "গুগল সাইন ইন ব্যবহারকারী তথ্য প্রদান করেনি।" : "Google sign in did not return userAuth.");
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error("Google Signup Error:", err);
-      const message = language === 'bn' ? 'গুগল সাইন আপে একটি সমস্যা হয়েছে। অনুগ্রহ করে আবার চেষ্টা করুন।' : "There was an issue with Google Sign Up. Please try again.";
+      const message = err.message || (language === 'bn' ? 'গুগল সাইন আপে একটি সমস্যা হয়েছে। অনুগ্রহ করে আবার চেষ্টা করুন।' : "There was an issue with Google Sign Up. Please try again.");
       setError(message);
       toast({
         title: language === 'bn' ? 'সাইন আপ ব্যর্থ হয়েছে' : "Sign Up Failed",
@@ -245,3 +274,4 @@ export default function SignupPage() {
     </div>
   );
 }
+
