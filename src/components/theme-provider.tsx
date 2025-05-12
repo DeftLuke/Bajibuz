@@ -4,7 +4,7 @@
 import type { ReactNode } from 'react';
 import { createContext, useContext, useEffect, useState } from 'react';
 
-type Theme = "light" | "dark-teal";
+type Theme = "light" | "Dark";
 
 interface ThemeProviderProps {
   children: ReactNode;
@@ -43,7 +43,7 @@ export function ThemeProvider({
   useEffect(() => {
     if (isClient) {
       const storedTheme = localStorage.getItem(storageKey) as Theme | null;
-      if (storedTheme && (storedTheme === 'light' || storedTheme === 'dark-teal')) {
+      if (storedTheme && (storedTheme === 'light' || storedTheme === 'Dark')) {
         setTheme(storedTheme);
       }
     }
@@ -55,7 +55,7 @@ export function ThemeProvider({
       const element = document.documentElement; // Assumes 'class' attribute on <html>
 
       if (attribute === 'class') {
-        element.classList.remove("light", "dark-teal");
+        element.classList.remove("light", "Dark");
         element.classList.add(theme);
       } else {
         element.setAttribute(attribute, theme);

@@ -1,4 +1,3 @@
-// src/app/layout.tsx
 import type { Metadata } from 'next';
 import { ThemeProvider } from '@/components/theme-provider';
 import { LanguageProvider } from '@/context/language-context';
@@ -8,8 +7,6 @@ import { Footer } from '@/components/layout/footer';
 import { Toaster } from '@/components/ui/toaster';
 import LoginBonusPopupWrapper from '@/components/shared/login-bonus-popup-wrapper'; 
 import './globals.css';
-// Removed GeistSans import as per new font requirement
-
 
 export const metadata: Metadata = {
   title: 'Bajibuz - Bangladesh\'s Most Trusted Online Casino',
